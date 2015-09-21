@@ -118,9 +118,31 @@
         animate();
       }
 
+      var sqrt, maxDistance;
+      var normalizedPhase = 0;
+      var speed = 0.03;
+      var crests = 2;
+      var distanceScalar = Math.PI * (crests * 2 - 1) / maxDistance;
+      var distanceOffset = 2 * Math.PI;
+      var maxAmplitude = 0.15;
+      var heightScalar = 1.00 / (2 * maxAmplitude);
+      var heightOffset = -0.9;
+
+
       function initShapeDisplay() {
           shapeDisplay = new ShapeDisplay(30, 30, 10, scene);
           shapeDisplay.setPosition(5, -5);
+
+          var centerX = 15;
+          var centerY = 15;
+          maxDistance = Math.sqrt( (centerX-0)*(centerX-0) + (centerY-0)*(centerY-0) );
+
+          sqrt = [];
+          for (var x = 0; x < 30; x++) {
+              for (var y = 0; y < 30; y++) {
+                  sqrt[x*30 + y] = Math.sqrt( (centerX-x)*(centerX-x) + (centerY-y)*(centerY-y) );
+              }
+          }
       }
 
       function animate() {
@@ -149,30 +171,16 @@
         controls.update(dt);
       }
 
-
-      var normalizedPhase = 0;
-      var speed = 0.01;
-      var crests = 2;
       function updateDisplay() {
           var time = Date.now();
           var frequency = 0.5;
 
-          normalizedPhase = normalizedPhase + speed;
+          normalizedPhase += speed;
           var phase = 2 * Math.PI * normalizedPhase;
-
-          var centerX = 15;
-          var centerY = 15;
-
-          var maxDistance = Math.sqrt( (centerX-0)*(centerX-0) + (centerY-0)*(centerY-0) );
-          var distanceScalar = Math.PI * (crests * 2 - 1) / maxDistance;
-          var distanceOffset = 2 * Math.PI;
-          var maxAmplitude = 0.15;
-          var heightScalar = 1.00 / (2 * maxAmplitude);
-          var heightOffset = -0.9;
 
           for (var x = 0; x < shapeDisplay.xWidth; x++) {
              for (var y = 0; y < shapeDisplay.yWidth; y++) {
-                  var d = Math.sqrt( (centerX-x)*(centerX-x) + (centerY-y)*(centerY-y) );
+                  var d = sqrt[x*30 + y];
                   distance = distanceScalar * d + distanceOffset;
                   var height = Math.sin(distance - phase) / distance;
                   shapeDisplay.setPinHeight(x, y, heightScalar * height + heightOffset);
