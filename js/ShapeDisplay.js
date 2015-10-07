@@ -1,19 +1,27 @@
 function ShapeDisplay(xWidth, yWidth, height, scene) {
-    this.pinSize = 0.3;
-    this.inBetween = .05;
+    //physical pin size = 9.525mm
+    this.pinSize = .9525;
+    //physical pin spacing = 3.175mm
+    this.inBetween = .3175;
     this.xWidth = xWidth;
     this.yWidth = yWidth;
     this.height = height;
+    
+    //total number of different height values
+    this.heightValues = 256;
+    //physical range of height: 100mm, for now 50mm;
+    this.heightRange = 5;
+
     this.container = new THREE.Mesh();
     this.pins = new Array(xWidth * yWidth);
 
     var material = new THREE.MeshLambertMaterial( { color: 0xdddddd, shading: THREE.SmoothShading } );
 
     for (var i = 0; i < xWidth * yWidth; i++) {
-        var pin = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
+        var pin = new THREE.Mesh(new THREE.BoxGeometry(this.pinSize, this.pinSize, this.pinSize), material);
         pin.position.set(i% xWidth * (this.pinSize + this.inBetween) + this.pinSize/2,
                         this.height, Math.floor(i/xWidth) * (this.pinSize + this.inBetween) + this.pinSize/2);
-        pin.scale.set(1, 4, 1);
+        pin.scale.set(1, 10, 1);
         this.container.add(pin);
         this.pins[i] = pin;
     }
@@ -39,12 +47,19 @@ ShapeDisplay.prototype.setPinHeight = function(x, y, height) {
         this.pins[index].position.y = height + this.height;
     }
 }
-ShapeDisplay.prototype.drawPrism = function(x, y, width, length, height) {
+ShapeDisplay.prototype.drawBox = function(x, y, width, length, height) {
+    x = Math.floor(x);
+    y = Math.floor(y);
+    width = Math.floor(width);
+    length = Math.floor(length);
     for (i = x; i < x + width; i++) {
        for (j = y; j < y + length; j++) {
          this.setPinHeight(i, j, height);
        }
     }
+}
+ShapeDisplay.prototype.drawCylinder = function(x, y, width, height) {
+    //
 }
 ShapeDisplay.prototype.getActualWidth = function() {
     return (this.pinSize + this.inBetween) * (this.xWidth - 1) + this.pinSize;

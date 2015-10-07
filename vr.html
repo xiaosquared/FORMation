@@ -61,7 +61,7 @@
       function init() {
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.001, 700);
-        camera.position.set(0, 15, 0);
+        camera.position.set(0, 30, 0);
         scene.add(camera);
 
         renderer = new THREE.WebGLRenderer();
@@ -167,6 +167,17 @@
                   sqrt[x*30 + y] = Math.sqrt( (centerX-x)*(centerX-x) + (centerY-y)*(centerY-y) );
               }
           }
+          
+          //user globals here
+          boxX = 0;
+          boxY = 0;
+          boxWidth = 3;
+          boxLength = 3;
+          boxHeight = 1;
+          minHeight = 0;
+          maxHeight = shapeDisplay.heightRange;
+          boxSpeed = 0.05;
+          boxUp = true;
       }
 
       function animate() {
@@ -197,13 +208,22 @@
 
       function updateDisplay() {
           var time = Date.now();
-          //shapeDisplay.drawPrism(0, 0, 3, 4, 5);
-          
+          shapeDisplay.drawBox(boxX, boxY, 2, 2, boxHeight);
+          boxX+=0.1;
+          boxY+=0.1;
+          boxWidth-=0.01;
+          boxLength-=0.01;
+          boxUp ? boxHeight += boxSpeed : boxHeight -= boxSpeed;
+          if (boxHeight < minHeight || boxHeight > maxHeight) {
+             boxUp = !boxUp;
+          }
+
+          /*
           var frequency = 0.5;
 
           normalizedPhase += speed;
           var phase = 2 * Math.PI * normalizedPhase;
-
+          
           for (var x = 0; x < shapeDisplay.xWidth; x++) {
              for (var y = 0; y < shapeDisplay.yWidth; y++) {
                   var d = sqrt[x*30 + y];
@@ -212,7 +232,7 @@
                   shapeDisplay.setPinHeight(x, y, heightScalar * height + heightOffset);
              }
           }
-          
+          */
       }
 
       function fullscreen() {
