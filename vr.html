@@ -16,17 +16,24 @@
         right: 0;
         top: 0;
       }
+      #stereoSwitch {
+        top: 0;
+        left: 0;
+        position: absolute;
+        z-index: 20;
+      }
     </style>
   </head>
   <body>
     <div id="webglviewer"></div>
+    <button onclick="toggleStereo()" id="stereoSwitch">DEFAULT</button>
 
     <script src="./js/three.min.js"></script>
     <script src="./js/StereoEffect.js"></script>
     <script src="./js/DeviceOrientationControls.js"></script>
     <script src="./js/OrbitControls.js"></script>
+    <script src="./js/FirstPersonControls.js"></script>
     <script src="./js/ShapeDisplay.js"></script>
-    <script src="./js/helvetiker_regular.typeface.js"></script>
     <script src="https://timezonedb.googlecode.com/files/timezonedb.js" type="text/javascript"></script>
 
     <script>
@@ -40,8 +47,16 @@
           clock;
 
       var shapeDisplay;
+      
+      var MOVESPEED = 15;
+      var LOOKSPEED = 0.02;
+      var STEREO = false;
 
       init();
+      function toggleStereo() {
+        STEREO = !STEREO;
+        STEREO ? document.getElementById('stereoSwitch').innerHTML = "DEFAULT" : document.getElementById('stereoSwitch').innerHTML = "STEREO";
+      }
 
       function init() {
         scene = new THREE.Scene();
@@ -57,6 +72,7 @@
         effect = new THREE.StereoEffect(renderer);
 
         // Our initial control fallback with mouse/touch events in case DeviceOrientation is not enabled
+        /*
         controls = new THREE.OrbitControls(camera, element);
         controls.target.set(
           camera.position.x + 0.15,
@@ -65,6 +81,12 @@
         );
         controls.noPan = true;
         controls.noZoom = true;
+        */
+        controls = new THREE.FirstPersonControls(camera);
+        controls.movementSpeed = MOVESPEED;
+        controls.lookSpeed = LOOKSPEED;
+        controls.lookVertical = false;
+        //controls.activeLook = false;
 
         // Our preferred controls via DeviceOrientation
         function setOrientationControls(e) {
@@ -90,7 +112,8 @@
         var lightScene = new THREE.PointLight(0x999999, 2, 100);
         lightScene.position.set(0, 5, 0);
         scene.add(lightScene);
-
+        
+        //add wood floor
         var floorTexture = THREE.ImageUtils.loadTexture('textures/wood.jpg');
         floorTexture.wrapS = THREE.RepeatWrapping;
         floorTexture.wrapT = THREE.RepeatWrapping;
@@ -110,6 +133,7 @@
         var floor = new THREE.Mesh(geometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
+        
 
         initShapeDisplay();
 
@@ -150,7 +174,7 @@
 
         updateDisplay();
         update(clock.getDelta());
-        effect.render(scene, camera);
+        STEREO ? effect.render(scene, camera) : renderer.render(scene, camera);
       }
 
       function resize() {
@@ -173,6 +197,8 @@
 
       function updateDisplay() {
           var time = Date.now();
+          //shapeDisplay.drawPrism(0, 0, 3, 4, 5);
+          
           var frequency = 0.5;
 
           normalizedPhase += speed;
@@ -185,7 +211,8 @@
                   var height = Math.sin(distance - phase) / distance;
                   shapeDisplay.setPinHeight(x, y, heightScalar * height + heightOffset);
              }
-         }
+          }
+          
       }
 
       function fullscreen() {

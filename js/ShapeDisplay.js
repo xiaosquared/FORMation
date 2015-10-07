@@ -39,6 +39,13 @@ ShapeDisplay.prototype.setPinHeight = function(x, y, height) {
         this.pins[index].position.y = height + this.height;
     }
 }
+ShapeDisplay.prototype.drawPrism = function(x, y, width, length, height) {
+    for (i = x; i < x + width; i++) {
+       for (j = y; j < y + length; j++) {
+         this.setPinHeight(i, j, height);
+       }
+    }
+}
 ShapeDisplay.prototype.getActualWidth = function() {
     return (this.pinSize + this.inBetween) * (this.xWidth - 1) + this.pinSize;
 }
