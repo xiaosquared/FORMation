@@ -27,6 +27,8 @@
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
+  <script src="js/chroma.min.js"></script>
+  <script src="js/geometry/utils.js"></script>
 
   <script>
     var camera, scene, renderer;
@@ -110,6 +112,20 @@
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
+        // Add some orientation objects
+        //----------------------------------------------------------------------
+        var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
+                                    new THREE.MeshLambertMaterial({ color: 'red' }) );
+        cube.name = 'cube';
+        scene.add(cube);
+
+        var transparentMaterial = new THREE.MeshPhongMaterial({color: 'yellow', transparent: true, opacity: 0.7});
+        var shapeDisplayBox = new THREE.Mesh( new THREE.BoxGeometry(24, 24, 24),
+                                                transparentMaterial);
+        shapeDisplayBox.name = "sd";
+        shapeDisplayBox.position.set(15, 0, 0)
+        scene.add(shapeDisplayBox);
+        //createGeometryFromMap();
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -124,6 +140,12 @@
         controlVars = new function () {
             this.stereo = true;
             this.stats = true;
+            this.cubeX = 20;
+            this.cubeY = 0;
+            this.cubeZ = 0;
+            this.SDX = 15;
+            this.SDY = 0;
+            this.SDZ = 0;
         };
             addControls(controlVars);
     }
@@ -142,6 +164,12 @@
     function addControls(controlObject) {
         var gui = new dat.GUI();
         gui.add(controlObject, 'stereo', true);
+        gui.add(controlObject, 'cubeX', 0, 30);
+        gui.add(controlObject, 'cubeY', 0, 20);
+        gui.add(controlObject, 'cubeZ', -15, 15);
+        gui.add(controlObject, 'SDX', 0, 30);
+        gui.add(controlObject, 'SDY', 0, 20);
+        gui.add(controlObject, 'SDZ', -15, -15);
         gui.add(controlObject, 'stats', true).onFinishChange(function() {
             if (controlObject.stats)
                 stats.domElement.style.opacity = 0.9;
@@ -165,6 +193,14 @@
       resize();
 
       camera.updateProjectionMatrix();
+      scene.getObjectByName('cube').position.x = controlVars.cubeX;
+      scene.getObjectByName('cube').position.y = controlVars.cubeY;
+      scene.getObjectByName('cube').position.z = controlVars.cubeZ;
+
+      var sd = scene.getObjectByName('sd');
+      sd.position.x = controlVars.SDX;
+      sd.position.y = controlVars.SDY;
+      sd.position.z = controlVars.SDZ;
 
       controls.update(dt);
       stats.update();
