@@ -20,7 +20,9 @@
   </head>
   <body>
     <div id="example"></div>
-
+    <div style="display:none">
+        <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
+    </div>
   <script src="js/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
@@ -40,6 +42,7 @@
     var stats;
     var controlVars;
 
+    var mapImageContext;
     var xForm;
 
     init();
@@ -127,22 +130,32 @@
                                                 transparentMaterial);
         shapeDisplayBox.name = "sd";
         shapeDisplayBox.position.set(15, 0, 0)
-        scene.add(shapeDisplayBox);
+        //scene.add(shapeDisplayBox);
 
         // Insert map
         //----------------------------------------------------------------------
-        var labTexture = THREE.ImageUtils.loadTexture('textures/e14-3.jpg');
+        // store it as a texture on the screen - need to scale ir properl
+        labTexture = THREE.ImageUtils.loadTexture('textures/e14-3.jpg');
         var labMaterial = new THREE.MeshBasicMaterial({color: 'white', specular: 0xffffff, map: labTexture, transparent: true, opacity: 0.0});
         var labPlanMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(48, 24), labMaterial);
-        labPlanMesh.position.set(15, 12.1, 0);
+        labPlanMesh.position.set(12, 12.1, 8);
         labPlanMesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
         labPlanMesh.name = "map";
         scene.add(labPlanMesh);
 
+        // save the img data in an easily accessible format
+        var mapCopy = new Image();
+        mapCopy.src = 'textures/e14-3.jpg';
+        mapCopy.onload = function() {
+            mapImgContext = document.getElementById('mapCopyCanvas').getContext('2d');
+            mapImgContext.drawImage(mapCopy, 0, 0);
+            loadMap(mapX, mapY);
+        };
+
         // Shape Display!!
         //----------------------------------------------------------------------
         xForm = new ShapeDisplay(24, 24, 12, scene);
-        xForm.setPosition(15, 0);
+        //xForm.setPosition(0, 0);
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -165,6 +178,8 @@
             addControls(controlVars);
     }
 
+    // Helpful Helper Functions
+    //--------------------------------------------------------------------------
     function createStats() {
         var stats = new Stats();
         stats.setMode(0);
@@ -202,6 +217,30 @@
       effect.setSize(width, height);
     }
 
+    // Do stuff to Shape Display
+    //--------------------------------------------------------------------------
+    function loadMap(x, y, skip) {
+        if (!skip) {
+            skip = 8;
+        }
+        var width = skip * 24;
+        mapData = mapImgContext.getImageData(x, y, width, width).data;
+        for(var y = 0; y < width; y++) {
+            for(var x = 0; x < width; x++) {
+                if ((x % skip == 0) && (y % skip == 0)) {
+                    var pix = mapData[(width * y + x) * 4];
+                    if (pix < 250) {
+                        xForm.setPinHeightFromPhysical(x/skip, y/skip, 50);
+                    } else {
+                        xForm.setPinHeightFromPhysical(x/skip, y/skip, 0);
+                    }
+                }
+            }
+        }
+
+    }
+    // Rendering!
+    //--------------------------------------------------------------------------
     function update(dt) {
       resize();
 
@@ -239,6 +278,28 @@
         container.webkitRequestFullscreen();
       }
     }
+
+    var mapX = 70;
+    var mapY = 70;
+    window.addEventListener('keydown', function(e) {
+        console.log(e.keyCode);
+        switch(e.keyCode) {
+            case 37:
+                mapX += 8;
+            break;
+            case 39:
+                mapX -= 8;
+            break;
+            case 38:
+                mapY += 8;
+            break;
+            case 40:
+                mapY -= 8;
+            break;
+        }
+        loadMap(mapX, mapY);
+    });
+
   </script>
   </body>
 </html>

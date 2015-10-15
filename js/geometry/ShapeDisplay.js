@@ -1,6 +1,7 @@
 function ShapeDisplay(xWidth, yWidth, height, scene) {
-    this.pinSize = 0.9525;
-    this.inBetween = .0475;
+    this.pinSize = 1;
+    //this.inBetween = .0475;
+    this.inBetween = 0;
     this.xWidth = xWidth;
     this.yWidth = yWidth;
     this.height = height;
@@ -28,7 +29,8 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     if (scene)
         this.addToScene(scene);
     this.container.translateY(this.height - this.pinHeight/2);
-    this.setPosition(0, 0);
+    this.container.rotateY(-Math.PI/2);
+    this.container.position.set(24, this.container.position.y, -12);
 }
 ShapeDisplay.prototype.getTotalWidth = function() {
     return (this.pinSize + this.inBetween) * this.xWidth;
@@ -39,11 +41,21 @@ ShapeDisplay.prototype.addToScene = function(scene) {
 ShapeDisplay.prototype.getIndex = function(x, y) {
   return  y * this.xWidth + x;
 }
-ShapeDisplay.prototype.setPosition = function(x, z) {
-    this.container.position.set(    x - this.getTotalWidth()/2,
+ShapeDisplay.prototype.setPositionZ = function(z) {
+    this.container.position.set(    this.container.position.x,
                                     this.container.position.y,
                                     z - this.getTotalWidth()/2);
 }
+ShapeDisplay.prototype.setPositionX = function(x) {
+    this.container.position.set(    x + this.getTotalWidth(),
+                                    this.container.position.y,
+                                    this.container.position.z);
+}
+// ShapeDisplay.prototype.setPositionZ = function(z) {
+//     this.container.position.set(    this.container.position.x,
+//                                     this.container.position.y,
+//                                     z - this.getTotalWidth()/2);
+// }
 ShapeDisplay.prototype.getPinHeight = function(x, y){
     var index = this.getIndex(x, y);
     if (index < this.pins.length)
@@ -57,15 +69,21 @@ ShapeDisplay.prototype.getPinHeightForPhysical = function(x, y) {
     return null;
 }
 ShapeDisplay.prototype.setPinHeight = function(x, y, h) {
-    var index = this.getIndex(x, y);
+    if (h || (h == 0)) {
+        var index = this.getIndex(x, y);
+    } else {
+        index = x;
+        h = y;
+    }
     if (index < this.pins.length) {
         this.pins[index].position.y = h * this.pinHeight;
     }
 }
 ShapeDisplay.prototype.setPinHeightFromPhysical = function(x, y, h) {
-    var index = this.getIndex(x, y);
-    if (index < this.pins.length) {
-        this.pins[index].position.y = h/255 * this.pinHeight;
+    if (h || (h == 0)) {
+        this.setPinHeight(x, y, h/255);
+    } else {
+        this.setPinHeight(x, y/255)
     }
 }
 
