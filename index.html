@@ -29,6 +29,7 @@
   <script src="js/dat.gui.min.js"></script>
   <script src="js/chroma.min.js"></script>
   <script src="js/geometry/utils.js"></script>
+  <script src="js/geometry/ShapeDisplay.js"></script>
 
   <script>
     var camera, scene, renderer;
@@ -38,6 +39,8 @@
     var clock = new THREE.Clock();
     var stats;
     var controlVars;
+
+    var xForm;
 
     init();
     animate();
@@ -107,12 +110,12 @@
             map: texture
         });
 
-        var geometry = new THREE.PlaneGeometry(1000, 1000);
+        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
-        // Add some orientation objects
+        // Placeholder objects for orientation
         //----------------------------------------------------------------------
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
                                     new THREE.MeshLambertMaterial({ color: 'red' }) );
@@ -125,7 +128,21 @@
         shapeDisplayBox.name = "sd";
         shapeDisplayBox.position.set(15, 0, 0)
         scene.add(shapeDisplayBox);
-        //createGeometryFromMap();
+
+        // Insert map
+        //----------------------------------------------------------------------
+        var labTexture = THREE.ImageUtils.loadTexture('textures/e14-3.jpg');
+        var labMaterial = new THREE.MeshBasicMaterial({color: 'white', specular: 0xffffff, map: labTexture, transparent: true, opacity: 0.0});
+        var labPlanMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(48, 24), labMaterial);
+        labPlanMesh.position.set(15, 12.1, 0);
+        labPlanMesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+        labPlanMesh.name = "map";
+        scene.add(labPlanMesh);
+
+        // Shape Display!!
+        //----------------------------------------------------------------------
+        xForm = new ShapeDisplay(24, 24, 12, scene);
+        xForm.setPosition(15, 0);
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -138,14 +155,12 @@
 
         // control variables
         controlVars = new function () {
-            this.stereo = true;
+            this.stereo = false;
             this.stats = true;
             this.cubeX = 20;
             this.cubeY = 0;
             this.cubeZ = 0;
-            this.SDX = 15;
-            this.SDY = 0;
-            this.SDZ = 0;
+            this.mapZ = 0;
         };
             addControls(controlVars);
     }
@@ -167,9 +182,7 @@
         gui.add(controlObject, 'cubeX', 0, 30);
         gui.add(controlObject, 'cubeY', 0, 20);
         gui.add(controlObject, 'cubeZ', -15, 15);
-        gui.add(controlObject, 'SDX', 0, 30);
-        gui.add(controlObject, 'SDY', 0, 20);
-        gui.add(controlObject, 'SDZ', -15, -15);
+        gui.add(controlObject, 'mapZ', -15, 15);
         gui.add(controlObject, 'stats', true).onFinishChange(function() {
             if (controlObject.stats)
                 stats.domElement.style.opacity = 0.9;
@@ -197,10 +210,8 @@
       scene.getObjectByName('cube').position.y = controlVars.cubeY;
       scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
-      var sd = scene.getObjectByName('sd');
-      sd.position.x = controlVars.SDX;
-      sd.position.y = controlVars.SDY;
-      sd.position.z = controlVars.SDZ;
+      var sd = scene.getObjectByName('map');
+      scene.getObjectByName('map').position.z = controlVars.mapZ;
 
       controls.update(dt);
       stats.update();
