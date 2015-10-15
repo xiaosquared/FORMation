@@ -1,7 +1,7 @@
 function ShapeDisplay(xWidth, yWidth, height, scene) {
-    this.pinSize = 1;
+    this.pinSize = 1.0;
     //this.inBetween = .0475;
-    this.inBetween = 0;
+    this.inBetween = 0.;
     this.xWidth = xWidth;
     this.yWidth = yWidth;
     this.height = height;
@@ -12,8 +12,9 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.touchPins = [];
     this.lastPositions = new Array(xWidth & yWidth);
 
-    this.material = new THREE.MeshLambertMaterial( { color: 0xffffff, shading: THREE.SmoothShading } );
-    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x222222, shading: THREE.SmoothShading } );
+    var pinBlack = THREE.ImageUtils.loadTexture('textures/darkPinTexture.jpg');
+    this.material = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
+    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
     this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
 
     for (var i = 0; i < xWidth * yWidth; i++) {
@@ -30,7 +31,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
         this.addToScene(scene);
     this.container.translateY(this.height - this.pinHeight/2);
     this.container.rotateY(-Math.PI/2);
-    this.container.position.set(24, this.container.position.y, -12);
+    this.container.position.set(this.getTotalWidth(), this.container.position.y, -this.getTotalWidth()/2);
 }
 ShapeDisplay.prototype.getTotalWidth = function() {
     return (this.pinSize + this.inBetween) * this.xWidth;
@@ -93,16 +94,22 @@ ShapeDisplay.prototype.getActualWidth = function() {
 ShapeDisplay.prototype.getActualHeight = function() {
     return (this.pinSize + this.inBetween) * (this.yWidth - 1) + this.pinSize;
 }
-ShapeDisplay.prototype.setPinMaterial = function(index, type) {
-    if (index < this.pins.length) {
-    if (type == 0)
-      this.pins[index].material = this.material;
-    else if (type == 1)
-      this.pins[index].material = this.darkMaterial;
-    else if (type == 2)
-      this.pins[index].material = this.touchMaterial;
+ShapeDisplay.prototype.setPinMaterial = function(x, y, type) {
+    if (type || (type == 0)) {
+        var index = this.getIndex(x, y);
+    } else {
+        index = x;
+        type = y;
+    } if (index < this.pins.length) {
+        if (type == 0)
+            this.pins[index].material = this.material;
+        else if (type == 1)
+            this.pins[index].material = this.darkMaterial;
+        else if (type == 2)
+            this.pins[index].material = this.touchMaterial;
     }
 }
+
 ShapeDisplay.prototype.setLastPinHeight = function(x, y, height) {
     var index = this.getIndex(x, y);
     if (index < this.lastPositions.length) {

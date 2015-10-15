@@ -7,9 +7,11 @@
     <style>
       body {
         margin: 0px;
+        background: 0x000000;
         overflow: hidden;
       }
       #example {
+        background:0x000000;
         position: absolute;
         top: 0;
         left: 0;
@@ -92,13 +94,22 @@
         window.addEventListener('deviceorientation', setOrientationControls, true);
 
 
-        // Light and floor
+        // Lights
         //----------------------------------------------------------------------
-        var light = new THREE.HemisphereLight(0x777777, 0x000000, 0.6);
-        scene.add(light);
+        var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x666666, 0.6 );
+        hemiLight.position.copy(new THREE.Vector3(0, 500, 0));
+        scene.add(hemiLight);
 
+
+        var directionalLight = new THREE.DirectionalLight();
+        directionalLight.position.copy(new THREE.Vector3(-5000, 30, 0));
+        scene.add(directionalLight);
+        
+
+        // Floor
+        //----------------------------------------------------------------------
         var texture = THREE.ImageUtils.loadTexture(
-            'textures/checker.png'
+            'textures/grid.png'
         );
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -106,7 +117,7 @@
         texture.anisotropy = renderer.getMaxAnisotropy();
 
         var material = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
+            color: 0x222222,
             specular: 0xffffff,
             shininess: 20,
             shading: THREE.FlatShading,
@@ -230,9 +241,11 @@
                 if ((x % skip == 0) && (y % skip == 0)) {
                     var pix = mapData[(width * y + x) * 4];
                     if (pix < 250) {
-                        xForm.setPinHeightFromPhysical(x/skip, y/skip, 50);
+                        xForm.setPinHeightFromPhysical(x/skip, y/skip, 200);
+                        xForm.setPinMaterial(x/skip, y/skip, 0);
                     } else {
                         xForm.setPinHeightFromPhysical(x/skip, y/skip, 0);
+                        xForm.setPinMaterial(x/skip, y/skip, 1);
                     }
                 }
             }
