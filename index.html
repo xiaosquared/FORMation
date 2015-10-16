@@ -18,17 +18,9 @@
         right: 0;
         bottom: 0;
       }
-      #codeButton {
-        top: 20px;
-        left: 100px;
-        position: absolute;
-        z-index: 20;
-        width: 50px;
-        height: 50px;
-      }
       #codeArea {
-        top: 20px;
-        left: 200px;
+        top: 30px;
+        left: 100px;
         position: absolute;
         z-index: 20;
       }
@@ -36,8 +28,7 @@
   </head>
   <body>
     <div id="example"></div>
-    <div id="codeButton"><button onclick="changeCode()">Code!</button></div>
-    <div id="codeArea"><textarea id="userCode" rows="4" cols="50">console.log("hello");</textarea></div>
+    <div id="codeArea"><textarea id="userCode" rows="40" cols="100">console.log("hello");</textarea></div>
     <div style="display:none">
         <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
     </div>
@@ -304,37 +295,66 @@
     var mapX = 0;
     var mapY = 0;
     window.addEventListener('keydown', function(e) {
-        console.log(e.keyCode);
-        switch(e.keyCode) {
-            case 37:
-                mapX += 1;
-            break;
-            case 39:
-                mapX -= 1;
-            break;
-            case 38:
-                mapY += 1;
-            break;
-            case 40:
-                mapY -= 1;
-            break;
+        var codingWindowVisible = document.getElementById('codeArea').style.display;
+        //only move map if coding window not visible
+        //Page Up toggles coding window
+        if (codingWindowVisible === 'none') {
+            console.log(e.keyCode);
+            switch(e.keyCode) {
+                case 37:
+                    mapX += 1;
+                break;
+                case 39:
+                    mapX -= 1;
+                break;
+                case 38:
+                    mapY += 1;
+                break;
+                case 40:
+                    mapY -= 1;
+                break;
+                case 33:
+                  document.getElementById('codeArea').style.display = 'block';
+                break;
+                case 34:
+                  this.changeCode();
+                break;
+            }
+            loadMap(mapX, mapY);
         }
-        loadMap(mapX, mapY);
+        else {
+            switch(e.keyCode) {
+                case 33:
+                    document.getElementById('codeArea').style.display = 'none';
+                break;
+            }
+        }
     });
 
     this.code = function() {};
-    document.getElementById('userCode').value = "xForm.setPinHeight(1,1,2)";
+
+    document.getElementById('userCode').value = ''
+    +'//add global variables here:\n'
+    +'var i = 0;\n'
+    +'\n'
+    +'//this function will be executed with each frame\n'
+    +'return function () {\n'
+    +'  i += 0.05;\n'
+    +'  xForm.setPinHeight(11,20,i);\n'
+    +'};';
+
     this.changeCode = function() {
       console.log("changing");
+      var _executedCode;
       try {
         var userCode = new Function('"use strict";\n' + document.getElementById('userCode').value);
-        console.log(userCode);
+        executedCode = userCode();
       }
       catch (err) {
         console.log(err.toString());
       }
-      if (userCode) {
-        this.code = userCode;
+      if (executedCode) {
+        this.code = executedCode;
       }
     }
   </script>
