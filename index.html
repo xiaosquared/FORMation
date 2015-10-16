@@ -202,10 +202,7 @@
         gui.add(controlObject, 'cubeZ', -15, 15);
         gui.add(controlObject, 'mapZ', -15, 15);
         gui.add(controlObject, 'stats', true).onFinishChange(function() {
-            if (controlObject.stats)
-                stats.domElement.style.opacity = 0.9;
-            else
-                stats.domElement.style.opacity = 0;
+            controlObject.stats ? stats.domElement.style.opacity = 0.9 : stats.domElement.style.opacity = 0;
         });
     }
 
