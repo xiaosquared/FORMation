@@ -4,6 +4,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.inBetween = 0.;
     this.xWidth = xWidth;
     this.yWidth = yWidth;
+    this.totalWidth = (this.pinSize + this.inBetween) * this.xWidth;
     this.height = height;
     this.container = new THREE.Mesh();
     this.pins = new Array(xWidth * yWidth);
@@ -14,6 +15,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
 
     var pinBlack = THREE.ImageUtils.loadTexture('textures/darkPinTexture.jpg');
     this.material = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
+    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
     this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
     this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
 
@@ -27,6 +29,11 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
 
         this.lastPositions[i] = 0;
     }
+
+    var bottom = new THREE.Mesh(new THREE.BoxGeometry(this.getTotalWidth(), 0.1, this.getTotalWidth()),this.darkMaterial);
+    bottom.position.set(this.getTotalWidth()/2, 0, this.getTotalWidth()/2);
+    this.container.add(bottom);
+
     if (scene)
         this.addToScene(scene);
     this.container.translateY(this.height - this.pinHeight/2);
@@ -34,7 +41,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.container.position.set(this.getTotalWidth(), this.container.position.y, -this.getTotalWidth()/2);
 }
 ShapeDisplay.prototype.getTotalWidth = function() {
-    return (this.pinSize + this.inBetween) * this.xWidth;
+    return this.totalWidth;
 }
 ShapeDisplay.prototype.addToScene = function(scene) {
     scene.add(this.container);
@@ -107,6 +114,8 @@ ShapeDisplay.prototype.setPinMaterial = function(x, y, type) {
             this.pins[index].material = this.darkMaterial;
         else if (type == 2)
             this.pins[index].material = this.touchMaterial;
+        else if (type == 3)
+            this.pins[index].material = this.clearMaterial;
     }
 }
 
