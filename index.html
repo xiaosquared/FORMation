@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Cardboard Example</title>
+    <title>MacroScope</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -31,8 +31,9 @@
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
-  <script src="js/chroma.min.js"></script>
-  <script src="js/geometry/utils.js"></script>
+  <script src="js/loaders/MTLLoader.js"></script>
+  <script src="js/loaders/OBJMTLLoader.js"></script>
+  <script src="js/geometry/piano.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
 
   <script>
@@ -46,6 +47,7 @@
 
     var mapImageContext;
     var xForm;
+    var placeholder; // just for testing. This will be an array later!
 
     init();
     animate();
@@ -109,7 +111,7 @@
         // Floor
         //----------------------------------------------------------------------
         var texture = THREE.ImageUtils.loadTexture(
-            'textures/grid.png'
+            'assets/grid.png'
         );
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -129,6 +131,13 @@
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
+        // Shape Display!!
+        //----------------------------------------------------------------------
+        xForm = new ShapeDisplay(24, 24, 12, scene);
+
+        // Virtual objects
+        loadPiano();
+
         // Placeholder objects for orientation
         //----------------------------------------------------------------------
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -143,22 +152,21 @@
         shapeDisplayBox.position.set(15, 0, 0)
         //scene.add(shapeDisplayBox);
 
-        // Insert map
-        //----------------------------------------------------------------------
+        placeholder = new THREE.Mesh( new THREE.BoxGeometry(1, 1, 1),
+                                        new THREE.MeshLambertMaterial({ color: 'red' }))
+        placeholder.name = "placeholder";
+        scene.add(placeholder);
+        placeholder.position.set(12, xForm.height, 0);
 
-        // save the img data in an easily accessible format
+        // Insert map: load it as image!
+        //---------------------------------------------------------------------- 
         var mapCopy = new Image();
-        mapCopy.src = 'textures/e14-3.png';
+        mapCopy.src = 'assets/test_object.png';
         mapCopy.onload = function() {
             mapImgContext = document.getElementById('mapCopyCanvas').getContext('2d');
             mapImgContext.drawImage(mapCopy, 0, 0);
             loadMap(mapX, mapY);
         };
-
-        // Shape Display!!
-        //----------------------------------------------------------------------
-        xForm = new ShapeDisplay(24, 24, 12, scene);
-        //xForm.setPosition(0, 0);
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -225,25 +233,55 @@
     function loadMap(x, y, skip) {
         var width = 24;
         mapData = mapImgContext.getImageData(x, y, width, width).data;
+
+        // clear objects to start
+        placeholder.visible = false;
+        var piano = scene.getObjectByName('piano');
+
         for(var i = 0, n = mapData.length; i < n; i += 4) {
             var r = mapData[i];
             var g = mapData[i + 1];
             var b = mapData[i + 2];
-            var a = mapData[i + 3];
 
-            xForm.setPinMaterial(i/4, 0);
-            if (r == 0 || g == 0 || b == 0) {
+            // R channel encodes height
+            xForm.setPinHeightFromPhysical(i/4, r);
+
+            // G channel encodes material
+            if (g == 255)
+                xForm.setPinMaterial(i/4, 0);
+            else if (g == 127)
+                xForm.setPinMaterial(i/4, 3);
+            else
                 xForm.setPinMaterial(i/4, 1);
-                xForm.setPinHeightFromPhysical(i/4, 0);
-            } else if (b < 50 || g < 50) {
-                xForm.setPinHeightFromPhysical(i/4, 255 - r);
-            } else if (Math.abs(r-b) < 3 && Math.abs(r-g) < 3) {
-                if (r < 255)
-                    xForm.setPinMaterial(i/4, 3);
-                xForm.setPinHeightFromPhysical(i/4, 255);
+
+            // B channel encodes other things
+            if (b == 255) {
+                xForm.setPinHeightFromPhysical(i/4, 5);
+                pinPosition = xForm.pins[i/4].position;
+                displayPosition = xForm.getPosition();
+
+                placeholder.visible = true;
+                placeholder.position.set(-pinPosition.z + displayPosition.x, 12, pinPosition.x + displayPosition.z);
+
+                positionModel(piano, -pinPosition.z + displayPosition.x, 12, pinPosition.x + displayPosition.z);
+
+                console.log("position", i/4);
             }
+
+            // xForm.setPinMaterial(i/4, 0);
+            // if (r == 0 || g == 0 || b == 0) {
+            //     xForm.setPinMaterial(i/4, 1);
+            //     xForm.setPinHeightFromPhysical(i/4, 0);
+            // } else if (b < 50 || g < 50) {
+            //     xForm.setPinHeightFromPhysical(i/4, 255 - r);
+            // } else if (Math.abs(r-b) < 3 && Math.abs(r-g) < 3) {
+            //     if (r < 255)
+            //         xForm.setPinMaterial(i/4, 3);
+            //     xForm.setPinHeightFromPhysical(i/4, 255);
+            // }
         }
     }
+
     // Rendering!
     //--------------------------------------------------------------------------
     function update(dt) {

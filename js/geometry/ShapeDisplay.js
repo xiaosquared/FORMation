@@ -13,7 +13,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.touchPins = [];
     this.lastPositions = new Array(xWidth & yWidth);
 
-    var pinBlack = THREE.ImageUtils.loadTexture('textures/darkPinTexture.jpg');
+    var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
     this.material = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
     this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
     this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
@@ -49,6 +49,9 @@ ShapeDisplay.prototype.addToScene = function(scene) {
 ShapeDisplay.prototype.getIndex = function(x, y) {
   return  y * this.xWidth + x;
 }
+ShapeDisplay.prototype.getPosition = function() {
+    return this.container.position;
+}
 ShapeDisplay.prototype.setPositionZ = function(z) {
     this.container.position.set(    this.container.position.x,
                                     this.container.position.y,
@@ -59,11 +62,6 @@ ShapeDisplay.prototype.setPositionX = function(x) {
                                     this.container.position.y,
                                     this.container.position.z);
 }
-// ShapeDisplay.prototype.setPositionZ = function(z) {
-//     this.container.position.set(    this.container.position.x,
-//                                     this.container.position.y,
-//                                     z - this.getTotalWidth()/2);
-// }
 ShapeDisplay.prototype.getPinHeight = function(x, y){
     var index = this.getIndex(x, y);
     if (index < this.pins.length)
