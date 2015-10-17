@@ -27,3 +27,24 @@ function positionModel(obj, x, y, z) {
     obj.visibile = true;
     obj.position.set(x, y, z);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+function Player(scene) {
+    this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
+                            new THREE.MeshLambertMaterial({ color: 'red' }));
+    this.row = 12;
+    this.col = 12;
+
+    scene.add(this.mesh);
+}
+Player.prototype.moveToSquare = function(row, col, shapedisplay) {
+    this.row = row;
+    this.col = col;
+    var pinPosition = shapedisplay.pins[shapedisplay.getIndex(row, col)].position;
+    var displayPosition = shapedisplay.getPosition();
+
+    this.mesh.position.set(-pinPosition.z + displayPosition.x,
+                            shapedisplay.height,
+                            pinPosition.x + displayPosition.z);
+}

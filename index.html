@@ -33,7 +33,7 @@
   <script src="js/dat.gui.min.js"></script>
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
-  <script src="js/geometry/piano.js"></script>
+  <script src="js/geometry/OtherGeometry.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
 
   <script>
@@ -48,6 +48,7 @@
     var mapImageContext;
     var xForm;
     var placeholder; // just for testing. This will be an array later!
+    var player;
 
     init();
     animate();
@@ -136,7 +137,16 @@
         xForm = new ShapeDisplay(24, 24, 12, scene);
 
         // Virtual objects
+        //----------------------------------------------------------------------
         loadPiano();
+
+        // temp block for positioning the piano
+        placeholder = new THREE.Mesh( new THREE.BoxGeometry(1, 1, 1),
+                                        new THREE.MeshLambertMaterial({ color: 'gray' }))
+        placeholder.name = "placeholder";
+        scene.add(placeholder);
+        placeholder.position.set(12, xForm.height, 0);
+
 
         // Placeholder objects for orientation
         //----------------------------------------------------------------------
@@ -152,14 +162,15 @@
         shapeDisplayBox.position.set(15, 0, 0)
         //scene.add(shapeDisplayBox);
 
-        placeholder = new THREE.Mesh( new THREE.BoxGeometry(1, 1, 1),
-                                        new THREE.MeshLambertMaterial({ color: 'red' }))
-        placeholder.name = "placeholder";
-        scene.add(placeholder);
-        placeholder.position.set(12, xForm.height, 0);
+
+        // Player Position
+        //----------------------------------------------------------------------
+        player = new Player(scene);
+        player.moveToSquare(12, 4, xForm);
+
 
         // Insert map: load it as image!
-        //---------------------------------------------------------------------- 
+        //----------------------------------------------------------------------
         var mapCopy = new Image();
         mapCopy.src = 'assets/test_object.png';
         mapCopy.onload = function() {
@@ -256,16 +267,13 @@
 
             // B channel encodes other things
             if (b == 255) {
-                xForm.setPinHeightFromPhysical(i/4, 5);
                 pinPosition = xForm.pins[i/4].position;
                 displayPosition = xForm.getPosition();
 
                 placeholder.visible = true;
-                placeholder.position.set(-pinPosition.z + displayPosition.x, 12, pinPosition.x + displayPosition.z);
+                placeholder.position.set(-pinPosition.z + displayPosition.x, 11.8, pinPosition.x + displayPosition.z);
 
                 positionModel(piano, -pinPosition.z + displayPosition.x, 12, pinPosition.x + displayPosition.z);
-
-                console.log("position", i/4);
             }
 
             // xForm.setPinMaterial(i/4, 0);
@@ -335,6 +343,18 @@
             break;
             case 40:
                 mapY -= 1;
+            break;
+            case 87: // W
+                player.moveToSquare(player.row, player.col - 1, xForm);
+            break;
+            case 83: // S
+                player.moveToSquare(player.row, player.col + 1, xForm);
+            break;
+            case 68: // D
+                player.moveToSquare(player.row + 1, player.col, xForm);
+            break;
+            case 65: // A
+                player.moveToSquare(player.row - 1, player.col, xForm);
             break;
         }
         loadMap(mapX, mapY);
