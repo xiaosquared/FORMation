@@ -23,7 +23,8 @@
   <body>
     <div id="example"></div>
     <div style="display:none">
-        <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
+        <canvas id="mapCopyCanvas-3" width="812" height="400"></canvas>
+        <canvas id="mapCopyCanvas-5" width="812" height="400"></canvas>
     </div>
   <script src="js/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
@@ -172,14 +173,22 @@
 
         // Insert map: load it as image!
         //----------------------------------------------------------------------
-        var mapCopy = new Image();
-        mapCopy.src = 'assets/e14-3.png';
-        mapCopy.onload = function() {
-            mapImgContext = document.getElementById('mapCopyCanvas').getContext('2d');
-            mapImgContext.drawImage(mapCopy, 0, 0);
+        var mapCopy3 = new Image();
+        mapCopy3.src = 'assets/e14-3.png';
+        mapCopy3.onload = function() {
+            mapFloor3 = document.getElementById('mapCopyCanvas-3').getContext('2d');
+            mapFloor3.drawImage(mapCopy3, 0, 0);
+            currentMap = mapFloor3;
             loadMap(mapX, mapY);
         };
 
+
+        var mapCopy5 = new Image();
+        mapCopy5.src = 'assets/e14-5.png';
+        mapCopy5.onload = function() {
+            mapFloor5 = document.getElementById('mapCopyCanvas-5').getContext('2d');
+            mapFloor5.drawImage(mapCopy5, 0, 0);
+        };
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
         window.addEventListener('resize', resize, false);
@@ -244,7 +253,7 @@
     //--------------------------------------------------------------------------
     function loadMap(x, y, skip) {
         var width = 24;
-        mapData = mapImgContext.getImageData(x, y, width, width).data;
+        mapData = currentMap.getImageData(x, y, width, width).data;
 
         // clear objects to start
         placeholder.visible = false;
@@ -281,11 +290,16 @@
 
     function runFunctionForUnit(x, y) {
         console.log("x, y ", x, y);
-        mapData = mapImgContext.getImageData(x, y, 1, 1).data;
-            // Check if there's something in B channel
-            var b = mapData[2]
-
-            console.log("B: " + b);
+        mapData = mapFloor3.getImageData(x, y, 1, 1).data;
+        // Check if there's something in B channel
+        var b = mapData[2];
+        if (b ==127) {
+            if (currentMap == mapFloor3)
+                currentMap = mapFloor5;
+            else
+                currentMap = mapFloor3;
+            loadMap(mapX, mapY);
+        }
     }
 
     // Rendering!
