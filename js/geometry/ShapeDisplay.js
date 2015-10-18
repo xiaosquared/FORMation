@@ -8,7 +8,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.height = height;
     this.container = new THREE.Mesh();
     this.pins = new Array(xWidth * yWidth);
-    this.pinHeight = 4;
+    this.pinHeight = 6;
     this.shadowPins = [];
     this.touchPins = [];
     this.lastPositions = new Array(xWidth & yWidth);

@@ -66,6 +66,7 @@
         scene = new THREE.Scene();
 
         camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
+        //camera.position.set(0, 17, 0);
         camera.position.set(0, 20, 0);
         scene.add(camera);
 
@@ -73,7 +74,7 @@
         //Setup Controls to look around
         //----------------------------------------------------------------------
         controls = new THREE.OrbitControls(camera, element);
-        controls.rotateUp(Math.PI / 4);
+        //controls.rotateUp(Math.PI/20);
         controls.target.set(
             camera.position.x + 0.1,
             camera.position.y,
@@ -255,7 +256,7 @@
             var b = mapData[i + 2];
 
             // R channel encodes height
-            xForm.setPinHeightFromPhysical(i/4, r);
+            xForm.setPinHeightFromPhysical(i/4, r/2 + 127);
 
             // G channel encodes material
             if (g == 255)
@@ -271,23 +272,20 @@
                 displayPosition = xForm.getPosition();
 
                 placeholder.visible = true;
-                placeholder.position.set(-pinPosition.z + displayPosition.x, 11.8, pinPosition.x + displayPosition.z);
+                placeholder.position.set(-pinPosition.z + displayPosition.x, xForm.height + xForm.pinHeight/2, pinPosition.x + displayPosition.z);
 
-                positionModel(piano, -pinPosition.z + displayPosition.x, 12, pinPosition.x + displayPosition.z);
+                positionModel(piano, -pinPosition.z + displayPosition.x, xForm.height + xForm.pinHeight/2, pinPosition.x + displayPosition.z);
             }
-
-            // xForm.setPinMaterial(i/4, 0);
-            // if (r == 0 || g == 0 || b == 0) {
-            //     xForm.setPinMaterial(i/4, 1);
-            //     xForm.setPinHeightFromPhysical(i/4, 0);
-            // } else if (b < 50 || g < 50) {
-            //     xForm.setPinHeightFromPhysical(i/4, 255 - r);
-            // } else if (Math.abs(r-b) < 3 && Math.abs(r-g) < 3) {
-            //     if (r < 255)
-            //         xForm.setPinMaterial(i/4, 3);
-            //     xForm.setPinHeightFromPhysical(i/4, 255);
-            // }
         }
+    }
+
+    function runFunctionForUnit(x, y) {
+        console.log("x, y ", x, y);
+        mapData = mapImgContext.getImageData(x, y, 1, 1).data;
+            // Check if there's something in B channel
+            var b = mapData[2]
+
+            console.log("B: " + b);
     }
 
     // Rendering!
@@ -355,6 +353,9 @@
             break;
             case 65: // A
                 player.moveToSquare(player.row - 1, player.col, xForm);
+            break;
+            case 32:
+                runFunctionForUnit(mapX + player.row, mapY + player.col);
             break;
         }
         loadMap(mapX, mapY);

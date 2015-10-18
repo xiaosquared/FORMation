@@ -11,9 +11,9 @@ function loadPiano() {
     var loader = new THREE.OBJMTLLoader();
     loader.load( 'assets/piano.obj', 'assets/piano.mtl', function ( object ) {
         var piano = object.children[0];
-        piano.material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.3});
+        piano.material = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.5});
         piano.name = ('piano');
-        piano.scale.set(0.07, 0.07, 0.07);
+        piano.scale.set(0.025, 0.025, 0.025);
         piano.rotation.y = -Math.PI/2;
         scene.add(piano);
     }, onProgress, onError);
@@ -45,6 +45,6 @@ Player.prototype.moveToSquare = function(row, col, shapedisplay) {
     var displayPosition = shapedisplay.getPosition();
 
     this.mesh.position.set(-pinPosition.z + displayPosition.x,
-                            shapedisplay.height,
+                            shapedisplay.height + shapedisplay.pinHeight/2,
                             pinPosition.x + displayPosition.z);
 }
