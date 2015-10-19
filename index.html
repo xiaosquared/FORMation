@@ -18,17 +18,42 @@
         right: 0;
         bottom: 0;
       }
-      #codeArea {
-        top: 30px;
-        left: 100px;
-        position: absolute;
+      #editor {
+        margin-left: 100px;
+        margin-top: 30px;
+        width: 800px;
+        height: 800px;
+        opacity: 0.75;
         z-index: 20;
-      }
+    }
     </style>
   </head>
   <body>
     <div id="example"></div>
-    <div id="codeArea"><textarea id="userCode" rows="40" cols="100">console.log("hello");</textarea></div>
+    <div id="editor">//add global variables here:
+var i = 0;
+var centerX = 12;
+var centerY = 12;
+var sqrt = [];
+for (var x = 0; x < 24; x++) {
+  for (var y = 0; y < 24; y++) {
+    sqrt[x*24 + y] = Math.sqrt( (centerX-x)*(centerX-x) + (centerY-y)*(centerY-y) );
+  }
+}
+
+//this function will be executed with each frame
+return function () {
+  i += 0.02;
+  var phase = 2 * Math.PI * i;
+
+  for (var x = 0; x < 24; x++) {
+    for (var y = 0; y < 24; y++) {
+      var d = sqrt[x*24 + y];
+      var height = Math.sin(d- phase) / d;
+      xForm.setPinHeight(x, y, height);
+    }
+  }
+};</div>
     <div style="display:none">
         <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
     </div>
@@ -41,6 +66,7 @@
   <script src="js/chroma.min.js"></script>
   <script src="js/geometry/utils.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
+  <script src="js/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 
   <script>
     var camera, scene, renderer;
@@ -53,6 +79,20 @@
 
     var mapImageContext;
     var xForm;
+
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/javascript");
+    editor.setOption("showPrintMargin", false);
+    editor.setOption("fontSize", 13);
+    //make control+m hide the editor
+    editor.commands.addCommand({
+        name: 'hideEditor',
+        bindKey: 'Ctrl-M',
+        exec: function(editor) {
+            document.getElementById('editor').style.display = 'none';
+        }
+    });
 
     init();
     animate();
@@ -295,9 +335,8 @@
     var mapX = 0;
     var mapY = 0;
     window.addEventListener('keydown', function(e) {
-        var codingWindowVisible = document.getElementById('codeArea').style.display;
+        var codingWindowVisible = document.getElementById('editor').style.display;
         //only move map if coding window not visible
-        //Page Up toggles coding window
         if (codingWindowVisible === 'none') {
             console.log(e.keyCode);
             switch(e.keyCode) {
@@ -313,41 +352,28 @@
                 case 40:
                     mapY -= 1;
                 break;
-                case 33:
-                  document.getElementById('codeArea').style.display = 'block';
-                break;
+                //Page Down runs the code
                 case 34:
                   this.changeCode();
+                break;
+                //if Ctrl+M is pressed, show editor
+                case 77:
+                  if (e.ctrlKey) {
+                    document.getElementById('editor').style.display = 'block';
+                    editor.focus();
+                  }
                 break;
             }
             loadMap(mapX, mapY);
         }
-        else {
-            switch(e.keyCode) {
-                case 33:
-                    document.getElementById('codeArea').style.display = 'none';
-                break;
-            }
-        }
     });
 
     this.code = function() {};
-
-    document.getElementById('userCode').value = ''
-    +'//add global variables here:\n'
-    +'var i = 0;\n'
-    +'\n'
-    +'//this function will be executed with each frame\n'
-    +'return function () {\n'
-    +'  i += 0.05;\n'
-    +'  xForm.setPinHeight(11,20,i);\n'
-    +'};';
-
     this.changeCode = function() {
       console.log("changing");
       var _executedCode;
       try {
-        var userCode = new Function('"use strict";\n' + document.getElementById('userCode').value);
+        var userCode = new Function('"use strict";\n' + editor.getValue());
         executedCode = userCode();
       }
       catch (err) {
@@ -357,6 +383,7 @@
         this.code = executedCode;
       }
     }
+    
   </script>
   </body>
 </html>
