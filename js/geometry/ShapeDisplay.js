@@ -105,22 +105,15 @@ ShapeDisplay.prototype.getActualWidth = function() {
 ShapeDisplay.prototype.getActualHeight = function() {
     return (this.pinSize + this.inBetween) * (this.yWidth - 1) + this.pinSize;
 }
-ShapeDisplay.prototype.setPinMaterial = function(x, y, type) {
-    if (type || (type == 0)) {
+ShapeDisplay.prototype.setPinMaterial = function(x, y, material) {
+    if (material)
         var index = this.getIndex(x, y);
-    } else {
+    else {
         index = x;
-        type = y;
-    } if (index < this.pins.length) {
-        if (type == 0)
-            this.pins[index].material = this.material;
-        else if (type == 1)
-            this.pins[index].material = this.darkMaterial;
-        else if (type == 2)
-            this.pins[index].material = this.touchMaterial;
-        else if (type == 3)
-            this.pins[index].material = this.clearMaterial;
+        material = y;
     }
+    if (index < this.pins.length)
+        this.pins[index].material = material;
 }
 
 ShapeDisplay.prototype.setLastPinHeight = function(x, y, height) {
@@ -134,4 +127,22 @@ ShapeDisplay.prototype.getLastPinHeight = function(x, y, height) {
   if (index < this.lastPositions.length)
       return this.lastPositions[index];
   return null;
+}
+
+// Material Manager
+function MaterialManager() {
+    var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
+    this.wallMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
+    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
+    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
+    this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
+}
+MaterialManager.prototype.getWallMaterial = function() {
+    return this.wallMaterial;
+}
+MaterialManager.prototype.getClearMaterial = function() {
+    return this.clearMaterial;
+}
+MaterialManager.prototype.getDarkMaterial = function() {
+    return this.darkMaterial;
 }

@@ -10,7 +10,7 @@
         background: 0x000000;
         overflow: hidden;
       }
-      #example {
+      #container {
         background:0x000000;
         position: absolute;
         top: 0;
@@ -21,11 +21,7 @@
     </style>
   </head>
   <body>
-    <div id="example"></div>
-    <div style="display:none">
-        <canvas id="mapCopyCanvas-3" width="812" height="400"></canvas>
-        <canvas id="mapCopyCanvas-5" width="812" height="400"></canvas>
-    </div>
+    <div id="container"></div>
   <script src="js/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
@@ -47,7 +43,7 @@
     var controlVars;
 
     var e14;
-    var mapImageContext;
+    var materials;
     var xForm;
     var placeholder; // just for testing. This will be an array later!
     var player;
@@ -60,7 +56,7 @@
         //----------------------------------------------------------------------
         renderer = new THREE.WebGLRenderer();
         element = renderer.domElement;
-        container = document.getElementById('example');
+        container = document.getElementById('container');
         container.appendChild(element);
 
         effect = new THREE.StereoEffect(renderer);
@@ -138,6 +134,7 @@
         // Shape Display!!
         //----------------------------------------------------------------------
         xForm = new ShapeDisplay(24, 24, 12, scene);
+        materials = new MaterialManager();
 
         // Placeholder objects for orientation
         //----------------------------------------------------------------------
@@ -166,7 +163,7 @@
         img2.onload = function() {
             e14.addLevel(img2, 50, 50);
             console.log("Floor 5 loaded");
-            e14.loadCurrentLevel(xForm);
+            e14.loadCurrentLevel(xForm, materials);
         }
 
         // Virtual objects
@@ -302,7 +299,7 @@
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
         }
-        e14.loadCurrentLevel(xForm);
+        e14.loadCurrentLevel(xForm, materials);
     });
 
   </script>

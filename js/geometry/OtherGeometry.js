@@ -29,7 +29,7 @@ World.prototype.getItemByName = function(name) {
     return;
 }
 // Loads current level into the shape display
-World.prototype.loadCurrentLevel = function(shapeDisplay) {
+World.prototype.loadCurrentLevel = function(shapeDisplay, materials) {
     var width = shapeDisplay.getWidthInPins();
     var height = shapeDisplay.getHeightInPins();
 
@@ -50,11 +50,11 @@ World.prototype.loadCurrentLevel = function(shapeDisplay) {
 
         // G channel encodes material
         if (g == 255)
-            shapeDisplay.setPinMaterial(i/4, 0);
+            shapeDisplay.setPinMaterial(i/4, materials.getWallMaterial());
         else if (g == 127)
-            shapeDisplay.setPinMaterial(i/4, 3);
+            shapeDisplay.setPinMaterial(i/4, materials.getClearMaterial());
         else
-            shapeDisplay.setPinMaterial(i/4, 1);
+            shapeDisplay.setPinMaterial(i/4, materials.getDarkMaterial());
 
         // B channel encodes where items are placed
         if (b == 255) {
