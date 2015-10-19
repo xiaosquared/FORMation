@@ -29,15 +29,17 @@ World.prototype.getItemByName = function(name) {
     return;
 }
 // Loads current level into the shape display
-World.prototype.loadCurrentLevel = function(shapeDisplay, materials) {
-    var width = shapeDisplay.getWidthInPins();
-    var height = shapeDisplay.getHeightInPins();
+World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
+    var width = shapeDisplays[0].getWidthInPins();
+    var height = shapeDisplays[0].getHeightInPins();
 
     var level = this.levels[this.currentLevel];
     var levelData = level.getImageData(this.origin.x, this.origin.y, width, height).data;
 
     // first set all the items to be invisible
-    this.items[0].hide();
+     for (var i = 0; i < this.items.length; i++)
+         this.items[i].hide();
+
 
     for (var i = 0, n = levelData.length; i < n; i += 4) {
         var r = levelData[i];
@@ -45,55 +47,80 @@ World.prototype.loadCurrentLevel = function(shapeDisplay, materials) {
         var b = levelData[i+2];
         var a = levelData[i+3];
 
-        // R channel encodes height
-        shapeDisplay.setPinHeightFromPhysical(i/4, r/2 + 127);
+        // unless we're off the map, R channel encodes height
+        if (a == 0) {
+            shapeDisplays[0].setPinHeightFromPhysical(i/4, 0);
+        }
+        else {
+            // if we're drawing logo, make it indented
+            // otherwise, get the height from R channel
+            var h = (g == 222) ? 127 - r/2 : 127 + r/2;
+            shapeDisplays[0].setPinHeightFromPhysical(i/4, h);
+
+            // take care of mini display
+            if (shapeDisplays[1])
+                shapeDisplays[1].setPinHeightFromPhysical(i/4, h);
+        }
+
 
         // G channel encodes material
-        if (g == 255)
-            shapeDisplay.setPinMaterial(i/4, materials.getWallMaterial());
+        var isShadow = false;
+        var material = materials.getDarkMaterial(isShadow);
+        if (g == 255 || g == 222)
+            material = materials.getWallMaterial(isShadow);
         else if (g == 127)
-            shapeDisplay.setPinMaterial(i/4, materials.getClearMaterial());
-        else
-            shapeDisplay.setPinMaterial(i/4, materials.getDarkMaterial());
+            material = materials.getClearMaterial(isShadow);
+
+        // set the correct material for the large shape display
+        shapeDisplays[0].setPinMaterial(i/4, material);
+
+        // mini one is always a ghost
+        if (shapeDisplays[1])
+            shapeDisplays[1].setPinMaterial(i/4, materials.getGhostMaterial());
+
 
         // B channel encodes where items are placed
-        if (b == 255) {
-            var pinPosition = shapeDisplay.pins[i/4].position;
-            var displayPosition = shapeDisplay.getPosition();
+        if (b > 127) {
+            var item = null;
+            if (b == 255)
+                item = this.items[0];
+            else if (b == 222)
+                item = this.items[1];
 
-            var x = i/4 % shapeDisplay.xWidth;
-            var y = i/4 / shapeDisplay.xWidth;
+            if (item) {
+                var pinPosition = shapeDisplays[0].pins[i/4].position;
+                var displayPosition = shapeDisplays[0].getPosition();
 
-            // TODO check if we are too close to the edge;
-            var item = this.items[0];
-            if (x >= item.left && y >= item.top
-                && shapeDisplay.xWidth-x >= item.right
-                && shapeDisplay.yWidth-y >= item.bottom) {
-                    item.placeInScene(scene, -pinPosition.z + displayPosition.x,
-                        shapeDisplay.height + shapeDisplay.pinHeight/2,
-                        pinPosition.x + displayPosition.z);
+                var x = i/4 % shapeDisplays[0].xWidth;
+                var y = Math.floor(i/4 / shapeDisplays[0].xWidth);
+
+                if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
+                    item.placeInScene(-pinPosition.z + displayPosition.x, shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 + item.verticalOffset, pinPosition.x + displayPosition.z);
+                }
             }
         }
     }
 }
+
 World.prototype.runFunctionForUnit = function(x, y, shapeDisplay) {
     var data = this.levels[this.currentLevel].getImageData(x, y, 1, 1).data;
     // Check if there's something in B channel
     var b = data[2];
     if (b ==127) {
         this.currentLevel = (this.currentLevel + 1) % this.levels.length;
-        this.loadCurrentLevel(shapeDisplay);
+        this.loadCurrentLevel([shapeDisplay], materials);
     }
 }
 
 // Other objects inside the model
 //------------------------------------------------------------------------------
-function Item(name, scene, left, right, top, bottom) {
+function Item(name, left, right, top, bottom, verticalOffset) {
     this.name = name;
     this.left = left;
     this.right = right;
     this.top = top;
     this.bottom = bottom;
+    this.verticalOffset = verticalOffset ? verticalOffset : 0;
 }
 Item.prototype.hide = function() {
     var item = scene.getObjectByName(this.name);
@@ -104,7 +131,7 @@ Item.prototype.hide = function() {
     item.visible = false;
 }
 
-Item.prototype.placeInScene = function(scene, x, y, z) {
+Item.prototype.placeInScene = function(x, y, z) {
     var item = scene.getObjectByName(this.name);
     if (!item) {
         console.log("Item " + this.name + " is not in the scene");
@@ -127,12 +154,27 @@ function loadPiano() {
     var loader = new THREE.OBJMTLLoader();
     loader.load( 'assets/piano.obj', 'assets/piano.mtl', function ( object ) {
         var piano = object.children[0];
-        piano.material = new THREE.MeshBasicMaterial({color: 0x666666, transparent: true, opacity: 0.5});
+        piano.material = materials.getGhostMaterial();
         piano.name = ('piano');
         piano.scale.set(0.025, 0.025, 0.025);
         piano.rotation.y = -Math.PI/2;
         scene.add(piano);
     }, onProgress, onError);
+}
+
+function createMiniCooperForm() {
+    var miniCooperForm = new ShapeDisplay(24, 24, 0, scene);
+    var container = miniCooperForm.container;
+    container.name = "xFormMini";
+    container.scale.set(0.05, 0.05, 0.05);
+
+    var cube = new THREE.Mesh(  new THREE.BoxGeometry(36, 24, 36),
+                                materials.getGhostMaterial() );
+
+    cube.position.set(12, -8, 12);
+    container.add(cube);
+
+    return miniCooperForm;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

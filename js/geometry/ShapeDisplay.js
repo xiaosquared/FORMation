@@ -1,6 +1,5 @@
 function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.pinSize = 1.0;
-    //this.inBetween = .0475;
     this.inBetween = 0.;
     this.xWidth = xWidth;
     this.yWidth = yWidth;
@@ -39,6 +38,9 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.container.translateY(this.height - this.pinHeight/2);
     this.container.rotateY(-Math.PI/2);
     this.container.position.set(this.getTotalWidth(), this.container.position.y, -this.getTotalWidth()/2);
+}
+ShapeDisplay.prototype.getGeometry = function() {
+    return this.container;
 }
 ShapeDisplay.prototype.getWidthInPins = function() {
     return this.xWidth;
@@ -136,13 +138,27 @@ function MaterialManager() {
     this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
     this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
     this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
+
+    this.shadowMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading });
+    this.shadowClearMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading, transparent:true, opacity: 0.3 });
+
+    this.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
 }
-MaterialManager.prototype.getWallMaterial = function() {
+MaterialManager.prototype.getWallMaterial = function(isShadow) {
+    if (isShadow)
+        return this.shadowMaterial;
     return this.wallMaterial;
 }
-MaterialManager.prototype.getClearMaterial = function() {
+MaterialManager.prototype.getClearMaterial = function(isShadow) {
+    if (isShadow)
+        return this.shadowClearMaterial;
     return this.clearMaterial;
 }
-MaterialManager.prototype.getDarkMaterial = function() {
+MaterialManager.prototype.getDarkMaterial = function(isShadow) {
+    if (isShadow)
+        return this.shadowMaterial;
     return this.darkMaterial;
+}
+MaterialManager.prototype.getGhostMaterial = function() {
+    return this.ghostMaterial;
 }

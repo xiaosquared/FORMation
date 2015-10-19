@@ -44,7 +44,7 @@
 
     var e14;
     var materials;
-    var xForm;
+    var xForm, xFormMini;
     var placeholder; // just for testing. This will be an array later!
     var player;
 
@@ -131,8 +131,9 @@
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
-        // Shape Display!!
+        // Shape Display!! + World
         //----------------------------------------------------------------------
+        e14 = new World();
         xForm = new ShapeDisplay(24, 24, 12, scene);
         materials = new MaterialManager();
 
@@ -148,9 +149,16 @@
         player = new Player(scene);
         player.moveToSquare(12, 12, xForm);
 
+        // Virtual objects
+        //----------------------------------------------------------------------
+        loadPiano();
+        e14.addItem(new Item('piano', 0, 1, 1, 1));
+
+        xFormMini = createMiniCooperForm();
+        e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
+
         // Insert map: load it as image!
         //----------------------------------------------------------------------
-        e14 = new World();
         var img = new Image();
         img.src = 'assets/e14-3.png';
         img.onload = function() {
@@ -163,13 +171,8 @@
         img2.onload = function() {
             e14.addLevel(img2, 50, 50);
             console.log("Floor 5 loaded");
-            e14.loadCurrentLevel(xForm, materials);
+            e14.loadCurrentLevel([xForm, xFormMini], materials);
         }
-
-        // Virtual objects
-        //----------------------------------------------------------------------
-        loadPiano();
-        e14.addItem(new Item('piano', scene, 1, 1, 1, 1));
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -299,7 +302,8 @@
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
         }
-        e14.loadCurrentLevel(xForm, materials);
+        e14.loadCurrentLevel([xForm, xFormMini], materials);
+        //e14.loadCurrentLevel(xFormMini, materials);
     });
 
   </script>
