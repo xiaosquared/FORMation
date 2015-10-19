@@ -40,6 +40,12 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.container.rotateY(-Math.PI/2);
     this.container.position.set(this.getTotalWidth(), this.container.position.y, -this.getTotalWidth()/2);
 }
+ShapeDisplay.prototype.getWidthInPins = function() {
+    return this.xWidth;
+}
+ShapeDisplay.prototype.getHeightInPins = function() {
+    return this.yWidth;
+}
 ShapeDisplay.prototype.getTotalWidth = function() {
     return this.totalWidth;
 }

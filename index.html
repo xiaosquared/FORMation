@@ -46,6 +46,7 @@
     var stats;
     var controlVars;
 
+    var e14;
     var mapImageContext;
     var xForm;
     var placeholder; // just for testing. This will be an array later!
@@ -75,7 +76,7 @@
         //Setup Controls to look around
         //----------------------------------------------------------------------
         controls = new THREE.OrbitControls(camera, element);
-        //controls.rotateUp(Math.PI/20);
+        controls.rotateUp(Math.PI/20);
         controls.target.set(
             camera.position.x + 0.1,
             camera.position.y,
@@ -138,18 +139,6 @@
         //----------------------------------------------------------------------
         xForm = new ShapeDisplay(24, 24, 12, scene);
 
-        // Virtual objects
-        //----------------------------------------------------------------------
-        loadPiano();
-
-        // temp block for positioning the piano
-        placeholder = new THREE.Mesh( new THREE.BoxGeometry(1, 1, 1),
-                                        new THREE.MeshLambertMaterial({ color: 'gray' }))
-        placeholder.name = "placeholder";
-        scene.add(placeholder);
-        placeholder.position.set(12, xForm.height, 0);
-
-
         // Placeholder objects for orientation
         //----------------------------------------------------------------------
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -157,38 +146,34 @@
         cube.name = 'cube';
         scene.add(cube);
 
-        var transparentMaterial = new THREE.MeshPhongMaterial({color: 'yellow', transparent: true, opacity: 0.7});
-        var shapeDisplayBox = new THREE.Mesh( new THREE.BoxGeometry(24, 24, 24),
-                                                transparentMaterial);
-        shapeDisplayBox.name = "sd";
-        shapeDisplayBox.position.set(15, 0, 0)
-        //scene.add(shapeDisplayBox);
-
-
         // Player Position
         //----------------------------------------------------------------------
         player = new Player(scene);
-        player.moveToSquare(12, 4, xForm);
-
+        player.moveToSquare(12, 12, xForm);
 
         // Insert map: load it as image!
         //----------------------------------------------------------------------
-        var mapCopy3 = new Image();
-        mapCopy3.src = 'assets/e14-3.png';
-        mapCopy3.onload = function() {
-            mapFloor3 = document.getElementById('mapCopyCanvas-3').getContext('2d');
-            mapFloor3.drawImage(mapCopy3, 0, 0);
-            currentMap = mapFloor3;
-            loadMap(mapX, mapY);
-        };
+        e14 = new World();
+        var img = new Image();
+        img.src = 'assets/e14-3.png';
+        img.onload = function() {
+            e14.addLevel(img, 50, 50);
+            console.log("Floor 3 loaded");
+        }
 
+        var img2 = new Image();
+        img2.src = 'assets/e14-5.png';
+        img2.onload = function() {
+            e14.addLevel(img2, 50, 50);
+            console.log("Floor 5 loaded");
+            e14.loadCurrentLevel(xForm);
+        }
 
-        var mapCopy5 = new Image();
-        mapCopy5.src = 'assets/e14-5.png';
-        mapCopy5.onload = function() {
-            mapFloor5 = document.getElementById('mapCopyCanvas-5').getContext('2d');
-            mapFloor5.drawImage(mapCopy5, 0, 0);
-        };
+        // Virtual objects
+        //----------------------------------------------------------------------
+        loadPiano();
+        e14.addItem(new Item('piano', scene, 1, 1, 1, 1));
+
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
         window.addEventListener('resize', resize, false);
@@ -207,7 +192,7 @@
             this.cubeZ = 0;
             this.mapZ = 0;
         };
-            addControls(controlVars);
+        addControls(controlVars);
     }
 
     // Helpful Helper Functions
@@ -249,59 +234,6 @@
       effect.setSize(width, height);
     }
 
-    // Do stuff to Shape Display
-    //--------------------------------------------------------------------------
-    function loadMap(x, y, skip) {
-        var width = 24;
-        mapData = currentMap.getImageData(x, y, width, width).data;
-
-        // clear objects to start
-        placeholder.visible = false;
-        var piano = scene.getObjectByName('piano');
-
-        for(var i = 0, n = mapData.length; i < n; i += 4) {
-            var r = mapData[i];
-            var g = mapData[i + 1];
-            var b = mapData[i + 2];
-
-            // R channel encodes height
-            xForm.setPinHeightFromPhysical(i/4, r/2 + 127);
-
-            // G channel encodes material
-            if (g == 255)
-                xForm.setPinMaterial(i/4, 0);
-            else if (g == 127)
-                xForm.setPinMaterial(i/4, 3);
-            else
-                xForm.setPinMaterial(i/4, 1);
-
-            // B channel encodes other things
-            if (b == 255) {
-                pinPosition = xForm.pins[i/4].position;
-                displayPosition = xForm.getPosition();
-
-                placeholder.visible = true;
-                placeholder.position.set(-pinPosition.z + displayPosition.x, xForm.height + xForm.pinHeight/2, pinPosition.x + displayPosition.z);
-
-                positionModel(piano, -pinPosition.z + displayPosition.x, xForm.height + xForm.pinHeight/2, pinPosition.x + displayPosition.z);
-            }
-        }
-    }
-
-    function runFunctionForUnit(x, y) {
-        console.log("x, y ", x, y);
-        mapData = mapFloor3.getImageData(x, y, 1, 1).data;
-        // Check if there's something in B channel
-        var b = mapData[2];
-        if (b ==127) {
-            if (currentMap == mapFloor3)
-                currentMap = mapFloor5;
-            else
-                currentMap = mapFloor3;
-            loadMap(mapX, mapY);
-        }
-    }
-
     // Rendering!
     //--------------------------------------------------------------------------
     function update(dt) {
@@ -339,22 +271,20 @@
       }
     }
 
-    var mapX = 0;
-    var mapY = 0;
     window.addEventListener('keydown', function(e) {
         console.log(e.keyCode);
         switch(e.keyCode) {
             case 37:
-                mapX += 1;
+                e14.origin.x ++;
             break;
             case 39:
-                mapX -= 1;
+                e14.origin.x --;
             break;
             case 38:
-                mapY += 1;
+                e14.origin.y ++;
             break;
             case 40:
-                mapY -= 1;
+                e14.origin.y --;
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
@@ -369,10 +299,10 @@
                 player.moveToSquare(player.row - 1, player.col, xForm);
             break;
             case 32:
-                runFunctionForUnit(mapX + player.row, mapY + player.col);
+                e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
         }
-        loadMap(mapX, mapY);
+        e14.loadCurrentLevel(xForm);
     });
 
   </script>
