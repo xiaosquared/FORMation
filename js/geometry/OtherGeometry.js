@@ -79,12 +79,14 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
 
 
         // B channel encodes where items are placed
-        if (b > 127) {
+        if (b != 127) {
             var item = null;
             if (b == 255)
                 item = this.items[0];
             else if (b == 222)
                 item = this.items[1];
+            else if (b == 111)
+                item = this.items[2];
 
             if (item) {
                 var pinPosition = shapeDisplays[0].pins[i/4].position;
@@ -168,12 +170,23 @@ function createMiniCooperForm() {
     container.scale.set(0.05, 0.05, 0.05);
 
     var cube = new THREE.Mesh(  new THREE.BoxGeometry(36, 24, 36),
-                                materials.getGhostMaterial() );
+                                materials.getGhostMaterial()    );
 
     cube.position.set(12, -8, 12);
     container.add(cube);
 
     return miniCooperForm;
+}
+
+function createPingPongTable() {
+    var pp = new THREE.Mesh();
+    var ppSurface = new THREE.Mesh(     new THREE.BoxGeometry(60, 1, 35),
+                                        materials.getGhostMaterial()   );    
+    pp.add(ppSurface);
+    pp.position.set(12,14,12);
+    pp.scale.set(0.05, 0.05, 0.05);
+    pp.name = 'pingPong';
+    scene.add(pp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

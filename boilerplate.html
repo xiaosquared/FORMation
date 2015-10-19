@@ -62,12 +62,6 @@
     var stats;
     var controlVars;
 
-    var e14;
-    var materials;
-    var xForm, xFormMini;
-    var placeholder; // just for testing. This will be an array later!
-    var player;
-
     init();
     animate();
 
@@ -151,7 +145,6 @@
         var sky = new THREE.Mesh( skyGeo, skyMat );
         scene.add( sky );
 
-
         // Floor
         //----------------------------------------------------------------------
         var texture = THREE.ImageUtils.loadTexture(
@@ -175,51 +168,12 @@
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
-        // Shape Display!! + World
-        //----------------------------------------------------------------------
-        e14 = new World();
-        xForm = new ShapeDisplay(24, 24, 12, scene);
-        materials = new MaterialManager();
-
-        // Placeholder objects for orientation
+        // Placeholder object for orientation
         //----------------------------------------------------------------------
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
                                     new THREE.MeshLambertMaterial({ color: 'red' }) );
         cube.name = 'cube';
         scene.add(cube);
-
-        // Player Position
-        //----------------------------------------------------------------------
-        player = new Player(scene);
-        player.moveToSquare(12, 12, xForm);
-
-        // Virtual objects
-        //----------------------------------------------------------------------
-        loadPiano();
-        e14.addItem(new Item('piano', 0, 1, 1, 1));
-
-        xFormMini = createMiniCooperForm();
-        e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
-
-        var pingPongTable = createPingPongTable();
-        e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
-
-        // Insert map: load it as image!
-        //----------------------------------------------------------------------
-        var img = new Image();
-        img.src = 'assets/e14-3.png';
-        img.onload = function() {
-            e14.addLevel(img, 50, 50);
-            console.log("Floor 3 loaded");
-        }
-
-        var img2 = new Image();
-        img2.src = 'assets/e14-5.png';
-        img2.onload = function() {
-            e14.addLevel(img2, 50, 50);
-            console.log("Floor 5 loaded");
-            e14.loadCurrentLevel([xForm, xFormMini], materials);
-        }
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -237,7 +191,6 @@
             this.cubeX = 20;
             this.cubeY = 0;
             this.cubeZ = 0;
-            this.mapZ = 0;
         };
         addControls(controlVars);
     }
@@ -261,7 +214,6 @@
         gui.add(controlObject, 'cubeX', 0, 30);
         gui.add(controlObject, 'cubeY', 0, 20);
         gui.add(controlObject, 'cubeZ', -15, 15);
-        gui.add(controlObject, 'mapZ', -15, 15);
         gui.add(controlObject, 'stats', true).onFinishChange(function() {
             if (controlObject.stats)
                 stats.domElement.style.opacity = 0.9;
@@ -321,36 +273,35 @@
     window.addEventListener('keydown', function(e) {
         console.log(e.keyCode);
         switch(e.keyCode) {
-            case 37:
-                e14.origin.x ++;
+            case 37:    // Up
+
             break;
-            case 39:
-                e14.origin.x --;
+            case 39:    // Down
+
             break;
-            case 38:
-                e14.origin.y ++;
+            case 38:    // Left
+
             break;
-            case 40:
-                e14.origin.y --;
+            case 40:    // Right
+
             break;
             case 87: // W
-                player.moveToSquare(player.row, player.col - 1, xForm);
+
             break;
             case 83: // S
-                player.moveToSquare(player.row, player.col + 1, xForm);
+
             break;
             case 68: // D
-                player.moveToSquare(player.row + 1, player.col, xForm);
+
             break;
             case 65: // A
-                player.moveToSquare(player.row - 1, player.col, xForm);
+
             break;
             case 32:
-                e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
+
             break;
         }
-        e14.loadCurrentLevel([xForm, xFormMini], materials);
-        //e14.loadCurrentLevel(xFormMini, materials);
+
     });
 
   </script>
