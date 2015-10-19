@@ -40,7 +40,6 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
      for (var i = 0; i < this.items.length; i++)
          this.items[i].hide();
 
-
     for (var i = 0, n = levelData.length; i < n; i += 4) {
         var r = levelData[i];
         var g = levelData[i+1];
@@ -106,7 +105,7 @@ World.prototype.runFunctionForUnit = function(x, y, shapeDisplay) {
     var data = this.levels[this.currentLevel].getImageData(x, y, 1, 1).data;
     // Check if there's something in B channel
     var b = data[2];
-    if (b ==127) {
+    if (b == 127) {
         this.currentLevel = (this.currentLevel + 1) % this.levels.length;
         this.loadCurrentLevel([shapeDisplay], materials);
     }
