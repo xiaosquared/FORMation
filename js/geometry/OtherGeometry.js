@@ -34,7 +34,7 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
     var height = shapeDisplays[0].getHeightInPins();
 
     var level = this.levels[this.currentLevel];
-    var levelData = level.getImageData(this.origin.x, this.origin.y, width, height).data;
+    var levelData = level.getImageData(this.origin.x, this.origin.y, width,height).data;
 
     // first set all the items to be invisible
      for (var i = 0; i < this.items.length; i++)
@@ -63,7 +63,7 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
 
 
         // G channel encodes material
-        var isShadow = false;
+        var isShadow = xForm.shadowPins.indexOf(i/4) >= 0 ;
         var material = materials.getDarkMaterial(isShadow);
         if (g == 255 || g == 222)
             material = materials.getWallMaterial(isShadow);
@@ -181,7 +181,7 @@ function createMiniCooperForm() {
 function createPingPongTable() {
     var pp = new THREE.Mesh();
     var ppSurface = new THREE.Mesh(     new THREE.BoxGeometry(60, 1, 35),
-                                        materials.getGhostMaterial()   );    
+                                        materials.getGhostMaterial()   );
     pp.add(ppSurface);
     pp.position.set(12,14,12);
     pp.scale.set(0.05, 0.05, 0.05);

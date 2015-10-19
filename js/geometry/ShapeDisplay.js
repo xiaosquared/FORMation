@@ -79,8 +79,18 @@ ShapeDisplay.prototype.getPinHeight = function(x, y){
 ShapeDisplay.prototype.getPinHeightForPhysical = function(x, y) {
     var index = this.getIndex(x, y);
     if (index < this.pins.length)
-        return this.pins[index].position.y * 255;
+        return this.pins[index].position.y * 255 / this.pinHeight;
     return null;
+}
+ShapeDisplay.prototype.getHeightsMsgForPhysical = function() {
+    var msg = "";
+    for (var x = 0; x < this.xWidth; x++) {
+        for (var y = 0; y < this.yWidth; y++) {
+            var h = this.getPinHeightForPhysical(x, y);
+            msg += x + "," + y + "," + h + "-";
+        }
+    }
+    return msg.substring(0, msg.length -1);
 }
 ShapeDisplay.prototype.setPinHeight = function(x, y, h) {
     if (h || (h == 0)) {
@@ -100,7 +110,6 @@ ShapeDisplay.prototype.setPinHeightFromPhysical = function(x, y, h) {
         this.setPinHeight(x, y/255)
     }
 }
-
 ShapeDisplay.prototype.getActualWidth = function() {
     return (this.pinSize + this.inBetween) * (this.xWidth - 1) + this.pinSize;
 }

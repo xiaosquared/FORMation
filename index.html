@@ -42,12 +42,13 @@
             gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
         }
   </script>
-  <script src="js/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r72/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
+  <script src="js/sockets.utils.js"></script>
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
   <script src="js/geometry/OtherGeometry.js"></script>
@@ -68,10 +69,16 @@
     var placeholder; // just for testing. This will be an array later!
     var player;
 
+    var socket;
+
     init();
     animate();
 
     function init() {
+        //Init the Websocket
+        //----------------------------------------------------------------------
+        setupSocket();
+
         // Basic elements of 3JS: Renderer, Scene, Camera
         //----------------------------------------------------------------------
         renderer = new THREE.WebGLRenderer();
@@ -118,7 +125,6 @@
 
         // Lights
         //----------------------------------------------------------------------
-        //var hemiLight = new THREE.HemisphereLight( 0x9E1A1A, 0x9E1A1A, 1 );
         var hemiLight = new THREE.HemisphereLight( 0x999999, 0xffffff, 1);
         hemiLight.position.y = 500;
         scene.add(hemiLight);
@@ -219,6 +225,7 @@
             e14.addLevel(img2, 50, 50);
             console.log("Floor 5 loaded");
             e14.loadCurrentLevel([xForm, xFormMini], materials);
+            socket.send(xForm.getHeightsMsgForPhysical());
         }
 
         // Peripheral stuff: stats, control GUI
@@ -240,10 +247,60 @@
             this.mapZ = 0;
         };
         addControls(controlVars);
+
     }
 
     // Helpful Helper Functions
     //--------------------------------------------------------------------------
+    function setupSocket() {
+        console.log('Setup Socket');
+        socket = new WebSocket( get_appropriate_ws_url());
+
+        try {
+            socket.onopen = function() {
+                console.log("Websocket connection OPEN");
+            }
+            socket.onmessage = function got_packet(msg) {
+                //console.log("message");
+                handleMsg(msg.data);
+            }
+            socket.onclose = function() {
+                console.log("websocket connection CLOSED");
+            }
+        } catch (exception) {
+            console.log("Something went wrong " + exception);
+        }
+    }
+
+    var shadowThresh = 7;
+    var reloadModel = 2;
+    function handleMsg(msg) {
+        var type = msg[0];
+        pins = msg.substring(1).split("-");
+
+        if (type == "T") {
+            console.log("TOUCH ", pins.length);
+        } else if (type == "S") {
+            xForm.shadowPins = [];
+            if (pins.length > shadowThresh) {
+                //console.log("SHADOW ", pins.length);
+                for (var i = 0; i < pins.length; i++) {
+                    pins[i] = pins[i].split(",");
+                    var x = pins[i][0] - 0;
+                    var y = pins[i][1] - 0;
+
+                    xForm.shadowPins.push(xForm.getIndex(x, y));
+                    reloadModel = 2;
+                }
+            } else {
+                xForm.shadowPins = [];
+                reloadModel = Math.max(reloadModel, 0);
+            }
+            if (reloadModel)
+                e14.loadCurrentLevel([xForm], materials);
+        }
+    }
+
     function createStats() {
         var stats = new Stats();
         stats.setMode(0);
@@ -350,7 +407,7 @@
             break;
         }
         e14.loadCurrentLevel([xForm, xFormMini], materials);
-        //e14.loadCurrentLevel(xFormMini, materials);
+        socket.send(xForm.getHeightsMsgForPhysical());
     });
 
   </script>
