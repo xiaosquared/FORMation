@@ -135,15 +135,6 @@ function loadPiano() {
     }, onProgress, onError);
 }
 
-function positionModel(obj, x, y, z) {
-    if (!obj) {
-        console.log("no obj");
-        return;
-    }
-    obj.visibile = true;
-    obj.position.set(x, y, z);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 function Player(scene) {
