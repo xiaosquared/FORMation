@@ -266,6 +266,7 @@
             }
             socket.onclose = function() {
                 console.log("websocket connection CLOSED");
+                setupSocket();
             }
         } catch (exception) {
             console.log("Something went wrong " + exception);
@@ -274,13 +275,26 @@
 
     var shadowThresh = 7;
     var reloadModel = 2;
+    var touchThresh = 7;
     function handleMsg(msg) {
         var type = msg[0];
         pins = msg.substring(1).split("-");
 
         if (type == "T") {
-            console.log("TOUCH ", pins.length);
-        } else if (type == "S") {
+            //console.log("TOUCH ", pins.length);
+            // First decode which pins from the string. Save them.
+            xForm.touchPins = [];
+            for (var i = 0; i < pins.length; i++) {
+                pins[i] = pins[i].split(",");
+                var x = pins[i][0] - 0;
+                var y = pins[i][1] - 0;
+
+                if (!(y == 3 && x < 6))
+                    xForm.touchPins.push(xForm.getIndex(x, y));
+            }
+            console.log("Pushing on these pins ", xForm.touchPins);
+        }
+         else if (type == "S") {
             xForm.shadowPins = [];
             if (pins.length > shadowThresh) {
                 //console.log("SHADOW ", pins.length);
