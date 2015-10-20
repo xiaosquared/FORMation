@@ -48,7 +48,7 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
 
         // unless we're off the map, R channel encodes height
         if (a == 0) {
-            shapeDisplays[0].setPinHeightFromPhysical(i/4, 0);
+            shapeDisplays[0].setPinHeightFromPhysical(i/4, 100);
         }
         else {
             // if we're drawing logo, make it indented
