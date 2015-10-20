@@ -68,6 +68,7 @@
     var xForm, xFormMini;
     var placeholder; // just for testing. This will be an array later!
     var player;
+    var device;
 
     var socket;
 
@@ -112,11 +113,13 @@
             if (!e.alpha) {
                 return;
             }
-            controls = new THREE.DeviceOrientationControls(camera, true);
-            controls.connect();
-            controls.update();
+            device = new THREE.DeviceOrientationControls(camera, true);
+            device.connect();
+            device.update();
 
             element.addEventListener('click', fullscreen, false);
+
+            controlVars.stereo = true;
 
             window.removeEventListener('deviceorientation', setOrientationControls, true);
         }
@@ -196,8 +199,7 @@
 
         // Player Position
         //----------------------------------------------------------------------
-        player = new Player(scene);
-        player.moveToSquare(12, 12, xForm);
+
 
         // Virtual objects
         //----------------------------------------------------------------------
@@ -247,7 +249,6 @@
             this.mapZ = 0;
         };
         addControls(controlVars);
-
     }
 
     // Helpful Helper Functions
@@ -259,6 +260,8 @@
         try {
             socket.onopen = function() {
                 console.log("Websocket connection OPEN");
+                player = new Player(socket);
+                player.moveToSquare(12, 12, xForm);
             }
             socket.onmessage = function got_packet(msg) {
                 //console.log("message");
@@ -266,7 +269,6 @@
             }
             socket.onclose = function() {
                 console.log("websocket connection CLOSED");
-                setupSocket();
             }
         } catch (exception) {
             console.log("Something went wrong " + exception);
@@ -279,6 +281,7 @@
     function handleMsg(msg) {
         var type = msg[0];
         pins = msg.substring(1).split("-");
+        xy = msg.substring(1).split(",");
 
         if (type == "T") {
             //console.log("TOUCH ", pins.length);
@@ -313,6 +316,15 @@
             if (reloadModel)
                 e14.loadCurrentLevel([xForm], materials);
         }
+        else if (type == "M" && device) {
+            player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
+        } else if (type == "O" && device) {
+            moveX = xy[0]-0;
+            moveY = xy[1]-0;
+            e14.origin.x += moveX;
+            e14.origin.y += moveY;
+            e14.loadCurrentLevel([xForm], materials);
+        }
     }
 
     function createStats() {
@@ -328,7 +340,7 @@
 
     function addControls(controlObject) {
         var gui = new dat.GUI();
-        gui.add(controlObject, 'stereo', true);
+        gui.add(controlObject, 'stereo');
         gui.add(controlObject, 'cubeX', 0, 30);
         gui.add(controlObject, 'cubeY', 0, 20);
         gui.add(controlObject, 'cubeZ', -15, 15);
@@ -355,15 +367,19 @@
     // Rendering!
     //--------------------------------------------------------------------------
     function update(dt) {
-      resize();
+        resize();
 
-      camera.updateProjectionMatrix();
-      scene.getObjectByName('cube').position.x = controlVars.cubeX;
-      scene.getObjectByName('cube').position.y = controlVars.cubeY;
-      scene.getObjectByName('cube').position.z = controlVars.cubeZ;
+        camera.updateProjectionMatrix();
+        scene.getObjectByName('cube').position.x = controlVars.cubeX;
+        scene.getObjectByName('cube').position.y = controlVars.cubeY;
+        scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
-      controls.update(dt);
-      stats.update();
+
+        if(device)
+            device.update(dt);
+        else
+            controls.update(dt);
+        stats.update();
     }
 
     function render(dt) {
@@ -394,15 +410,19 @@
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
+                socket.send("O"+"1,0");
             break;
             case 39:
                 e14.origin.x --;
+                socket.send("O"+"-1,0");
             break;
             case 38:
                 e14.origin.y ++;
+                socket.send("O"+"0,1");
             break;
             case 40:
                 e14.origin.y --;
+                socket.send("O"+"0,-1");
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
@@ -421,7 +441,7 @@
             break;
         }
         e14.loadCurrentLevel([xForm, xFormMini], materials);
-        socket.send(xForm.getHeightsMsgForPhysical());
+        socket.send("P"+xForm.getHeightsMsgForPhysical());
     });
 
   </script>

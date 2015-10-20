@@ -191,7 +191,7 @@ function createPingPongTable() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function Player(scene) {
+function Player(socket) {
     this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
                             new THREE.MeshLambertMaterial({ color: 'red' }));
     this.row = 12;
@@ -200,6 +200,10 @@ function Player(scene) {
     scene.add(this.mesh);
 }
 Player.prototype.moveToSquare = function(row, col, shapedisplay) {
+
+    if (!device)
+        socket.send("M" + row + "," + col);
+
     this.row = row;
     this.col = col;
     var pinPosition = shapedisplay.pins[shapedisplay.getIndex(row, col)].position;
