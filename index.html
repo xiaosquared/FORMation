@@ -51,6 +51,7 @@
   <script src="js/sockets.utils.js"></script>
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
+  <script src="js/tween.js"></script>
   <script src="js/geometry/OtherGeometry.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
   <script src="js/geometry/InputHandler.js"></script>
@@ -78,39 +79,21 @@
     animate();
 
     function init() {
-        //Init the Websocket
-        //----------------------------------------------------------------------
-        setupSocket();
 
-        // Basic elements of 3JS: Renderer, Scene, Camera
-        //----------------------------------------------------------------------
-        renderer = new THREE.WebGLRenderer();
-        element = renderer.domElement;
-        container = document.getElementById('container');
-        container.appendChild(element);
-
-        effect = new THREE.StereoEffect(renderer);
-
-        scene = new THREE.Scene();
+        setupSocket();      //Init the Websocket
+        setupRendering();   // Make the renderer and stereo effect
+        setupScene();       // Scene + Shape Display!
+        setupLights();      // Lights and shaders
 
         camera = new THREE.PerspectiveCamera(90, 1, 0.001, 5000);
         //camera.position.set(0, 17, 0);
-        camera.position.set(0, 20, 0);
-        scene.add(camera);
+        camera.position.set(0, 3, 0);
+        camera.rotation.y = -Math.PI/2;
 
+        player = new Player(camera);
+        player.moveToSquare(12, 23, xForm);
 
-        //Setup Controls to look around
-        //----------------------------------------------------------------------
-        controls = new THREE.OrbitControls(camera, element);
-        controls.rotateUp(Math.PI/20);
-        controls.target.set(
-            camera.position.x + 0.1,
-            camera.position.y,
-            camera.position.z
-        );
-        controls.noZoom = true;
-        controls.noPan = true;
-
+        // Controls for iphone
         function setOrientationControls(e) {
             if (!e.alpha) {
                 return;
@@ -126,82 +109,6 @@
             window.removeEventListener('deviceorientation', setOrientationControls, true);
         }
         window.addEventListener('deviceorientation', setOrientationControls, true);
-
-
-        // Lights
-        //----------------------------------------------------------------------
-        var hemiLight = new THREE.HemisphereLight( 0x999999, 0xffffff, 1);
-        hemiLight.position.y = 500;
-        scene.add(hemiLight);
-
-
-        var directionalLight = new THREE.DirectionalLight();
-        directionalLight.position.copy(new THREE.Vector3(-5000, 30, 0));
-        scene.add(directionalLight);
-
-        // Mighty Skydome
-        // //----------------------------------------------------------------------
-        var vertexShader = document.getElementById( 'vertexShader' ).textContent;
-        var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
-        var uniforms = {
-            topColor: 	 { type: "c", value: new THREE.Color( 0x000000 ) },
-            bottomColor: { type: "c", value: new THREE.Color( 0x000000 ) },
-            offset:		 { type: "f", value: 400 },
-            exponent:	 { type: "f", value: 0.6 }
-        };
-        uniforms.topColor.value.copy( hemiLight.color );
-
-        var skyGeo = new THREE.SphereGeometry( 1000, 32, 15 );
-        var skyMat = new THREE.ShaderMaterial( {
-            uniforms: uniforms,
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-            side: THREE.BackSide
-        } );
-
-        var sky = new THREE.Mesh( skyGeo, skyMat );
-        scene.add( sky );
-
-
-        // Floor
-        //----------------------------------------------------------------------
-        var texture = THREE.ImageUtils.loadTexture(
-            'assets/grid.png'
-        );
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat = new THREE.Vector2(50, 50);
-        texture.anisotropy = renderer.getMaxAnisotropy();
-
-        var material = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            specular: 0xffffff,
-            shininess: 20,
-            shading: THREE.FlatShading,
-            map: texture
-        });
-
-        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.rotation.x = -Math.PI / 2;
-        scene.add(mesh);
-
-        // Shape Display!! + World
-        //----------------------------------------------------------------------
-        e14 = new World();
-        xForm = new ShapeDisplay(24, 24, 12, scene);
-        materials = new MaterialManager();
-
-        // Placeholder objects for orientation
-        //----------------------------------------------------------------------
-        var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
-                                    new THREE.MeshLambertMaterial({ color: 'red' }) );
-        cube.name = 'cube';
-        scene.add(cube);
-
-        // Player Position
-        //----------------------------------------------------------------------
-
 
         // Virtual objects
         //----------------------------------------------------------------------
@@ -262,8 +169,6 @@
         try {
             socket.onopen = function() {
                 console.log("Websocket connection OPEN");
-                player = new Player(socket);
-                player.moveToSquare(12, 12, xForm);
             }
             socket.onmessage = function got_packet(msg) {
                 //console.log("message");
@@ -284,11 +189,11 @@
         type = content[0];
         pins = content.slice(1);
 
+        // FOR MESSAGE FROM PHYSICAL SHAPE DISPLAY
         if (type == "touch") {
             touchHandler = inputManager.initTouchHandler(pins, xForm.xWidth, xForm.yWidth);
             inputManager.reactToTouchInput(touchHandler);
         }
-        
         else if (type == "shadow") {
             xForm.shadowPins = [];
             if (pins.length > shadowThresh) {
@@ -308,17 +213,108 @@
             if (reloadModel)
                 e14.loadCurrentLevel([xForm], materials);
         }
-        else if (type == "MovePlayer" && device) {
-            xy = content[1].split(",");
-            player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
-        } else if (type == "LevelOrigin" && device) {
-            xy = content[1].split(",");
-            moveX = xy[0]-0;
-            moveY = xy[1]-0;
-            e14.origin.x += moveX;
-            e14.origin.y += moveY;
-            e14.loadCurrentLevel([xForm], materials);
+
+        // FOR MESSAGES BETWEEN BROWSERS
+        else {
+            type = msg[0];
+
+            // Move Player (camera)
+            if (type == "M" && device) {
+                xy = msg.slice(1).split(",");
+                player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
+            }
+
+            // Move Origin of map
+            else if (type == "O" && device) {
+                xy = msg.slice(1).split(",");
+                moveX = xy[0]-0;
+                moveY = xy[1]-0;
+                e14.origin.x += moveX;
+                e14.origin.y += moveY;
+                e14.loadCurrentLevel([xForm], materials);
+            }
         }
+    }
+
+    function setupRendering() {
+        renderer = new THREE.WebGLRenderer();
+        element = renderer.domElement;
+        container = document.getElementById('container');
+        container.appendChild(element);
+
+        effect = new THREE.StereoEffect(renderer);
+    }
+
+    function setupScene() {
+        scene = new THREE.Scene();
+
+        // The important stuff: Shape Display stuff
+        e14 = new World();
+        xForm = new ShapeDisplay(24, 24, 12, scene);
+        materials = new MaterialManager();
+
+        // Placeholder object for orientation
+        var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
+                                    new THREE.MeshLambertMaterial({ color: 'red' }) );
+        cube.name = 'cube';
+        scene.add(cube);
+
+        // Floor
+        var texture = THREE.ImageUtils.loadTexture('assets/grid.png');
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat = new THREE.Vector2(50, 50);
+        texture.anisotropy = renderer.getMaxAnisotropy();
+
+        var material = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            specular: 0xffffff,
+            shininess: 20,
+            shading: THREE.FlatShading,
+            map: texture
+        });
+
+        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.rotation.x = -Math.PI / 2;
+        scene.add(mesh);
+    }
+
+    function setupLights() {
+        // Lights
+        //----------------------------------------------------------------------
+        var hemiLight = new THREE.HemisphereLight( 0x999999, 0xffffff, 1);
+        hemiLight.position.y = 500;
+        scene.add(hemiLight);
+
+
+        var directionalLight = new THREE.DirectionalLight();
+        directionalLight.position.copy(new THREE.Vector3(-5000, 30, 0));
+        scene.add(directionalLight);
+
+        // Mighty Skydome
+        // //----------------------------------------------------------------------
+        var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+        var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+        var uniforms = {
+            topColor: 	 { type: "c", value: new THREE.Color( 0x000000 ) },
+            bottomColor: { type: "c", value: new THREE.Color( 0x000000 ) },
+            offset:		 { type: "f", value: 400 },
+            exponent:	 { type: "f", value: 0.6 }
+        };
+        uniforms.topColor.value.copy( hemiLight.color );
+
+        var skyGeo = new THREE.SphereGeometry( 1000, 32, 15 );
+        var skyMat = new THREE.ShaderMaterial( {
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide
+        } );
+
+        var sky = new THREE.Mesh( skyGeo, skyMat );
+        scene.add( sky );
+
     }
 
     function createStats() {
@@ -364,15 +360,11 @@
         resize();
 
         camera.updateProjectionMatrix();
-        scene.getObjectByName('cube').position.x = controlVars.cubeX;
-        scene.getObjectByName('cube').position.y = controlVars.cubeY;
-        scene.getObjectByName('cube').position.z = controlVars.cubeZ;
-
 
         if(device)
             device.update(dt);
-        else
-            controls.update(dt);
+        // else
+        //     controls.update(dt);
         stats.update();
     }
 
@@ -400,23 +392,23 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        console.log(e.keyCode);
+        //console.log(e.keyCode);
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
-                socket.send("LevelOrigin-"+"1,0");
+                socket.send("O"+"1,0");
             break;
             case 39:
                 e14.origin.x --;
-                socket.send("LevelOrigin-"+"-1,0");
+                socket.send("O"+"-1,0");
             break;
             case 38:
                 e14.origin.y ++;
-                socket.send("LevelOrigin-"+"0,1");
+                socket.send("O"+"0,1");
             break;
             case 40:
                 e14.origin.y --;
-                socket.send("LevelOrigin-"+"0,-1");
+                socket.send("O"+"0,-1");
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
@@ -425,7 +417,7 @@
                 player.moveToSquare(player.row, player.col + 1, xForm);
             break;
             case 68: // D
-                player.moveToSquare(player.row + 1, player.col, xForm);
+                player.moveToSquare(player.row + 1, player.col , xForm);
             break;
             case 65: // A
                 player.moveToSquare(player.row - 1, player.col, xForm);

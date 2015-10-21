@@ -191,31 +191,40 @@ function createPingPongTable() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function Player(socket) {
+function Player(camera) {
+    this.row;
+    this.col;
+
+    this.avatarPosition = new THREE.Vector3(0, 13.75, 0);
+    this.maquettePosition = new THREE.Vector3(-10, 20, 0);
+
     this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
                             new THREE.MeshLambertMaterial({ color: 'red' }));
-    this.row = 12;
-    this.col = 12;
+    this.mesh.position.copy(this.maquettePosition);
 
+    this.mesh.add(camera);
     scene.add(this.mesh);
 }
 Player.prototype.moveToSquare = function(row, col, shapedisplay) {
     // If row and col are arrays, get the average and floor it
     if (row instanceof Array) {
-        this.row = ~~(eval(row.join('+'))/row.length);
-        this.col = ~~(eval(col.join('+'))/col.length);
-    } else {
-        this.row = row;
-        this.col = col;
+        console.log("array for rol and col");
+        row = ~~(eval(row.join('+'))/row.length);
+        col = ~~(eval(col.join('+'))/col.length);
+    }
+    if (row >= shapedisplay.xWidth || row < 0 || col >= shapedisplay.yWidth || col < 0)
+        return;
+
+    this.row = row, this.col = col;
+
+    if (!device && socket.readyState) {
+        socket.send("M" + this.row + "," + this.col);
     }
 
-    if (!device)
-        socket.send("M" + this.row + "," + this.col);
-
-    var pinPosition = shapedisplay.pins[shapedisplay.getIndex(this.row, this.col)].position;
+    var pinPosition = shapedisplay.pins[shapedisplay.getIndex(row, col)].position;
     var displayPosition = shapedisplay.getPosition();
 
-    this.mesh.position.set(-pinPosition.z + displayPosition.x,
-                            shapedisplay.height + shapedisplay.pinHeight/2,
-                            pinPosition.x + displayPosition.z);
+    this.avatarPosition.x = -pinPosition.z + displayPosition.x;
+    this.avatarPosition.z = pinPosition.x + displayPosition.z;
+    this.mesh.position.copy(this.avatarPosition);
 }
