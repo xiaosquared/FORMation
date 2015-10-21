@@ -47,7 +47,7 @@ ShapeDisplay.prototype.addToScene = function(scene) {
     scene.add(this.container);
 }
 ShapeDisplay.prototype.getIndex = function(x, y) {
-  return  y * this.xWidth + x;
+  return  y * this.xWidth + x % this.xWidth;
 }
 ShapeDisplay.prototype.setPositionZ = function(z) {
     this.container.position.set(    this.container.position.x,
@@ -130,4 +130,7 @@ ShapeDisplay.prototype.getLastPinHeight = function(x, y, height) {
   if (index < this.lastPositions.length)
       return this.lastPositions[index];
   return null;
+}
+ShapeDisplay.prototype.makeBox = function(x, y, xWidth, yWidth, height) {
+  return new Box(x, y, xWidth, yWidth, height, this);
 }
