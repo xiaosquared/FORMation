@@ -200,13 +200,19 @@ function Player(socket) {
     scene.add(this.mesh);
 }
 Player.prototype.moveToSquare = function(row, col, shapedisplay) {
+    // If row and col are arrays, get the average and floor it
+    if (row instanceof Array) {
+        this.row = ~~(eval(row.join('+'))/row.length);
+        this.col = ~~(eval(col.join('+'))/col.length);
+    } else {
+        this.row = row;
+        this.col = col;
+    }
 
     if (!device)
-        socket.send("M" + row + "," + col);
+        socket.send("M" + this.row + "," + this.col);
 
-    this.row = row;
-    this.col = col;
-    var pinPosition = shapedisplay.pins[shapedisplay.getIndex(row, col)].position;
+    var pinPosition = shapedisplay.pins[shapedisplay.getIndex(this.row, this.col)].position;
     var displayPosition = shapedisplay.getPosition();
 
     this.mesh.position.set(-pinPosition.z + displayPosition.x,
