@@ -182,7 +182,7 @@
         }
     }
 
-    var shadowThresh = 7;
+    var shadowThresh = 0;
     var reloadModel = 2;
     function handleMsg(msg) {
         content = msg.split("-");
@@ -197,7 +197,7 @@
         else if (type == "shadow") {
             xForm.shadowPins = [];
             if (pins.length > shadowThresh) {
-                //console.log("SHADOW ", pins.length);
+                console.log("SHADOW ", pins.length);
                 for (var i = 0; i < pins.length; i++) {
                     pins[i] = pins[i].split(",");
                     var x = pins[i][0] - 0;
@@ -215,17 +215,17 @@
         }
 
         // FOR MESSAGES BETWEEN BROWSERS
-        else {
+        else if (device) {
             type = msg[0];
 
             // Move Player (camera)
-            if (type == "M" && device) {
+            if (type == "M") {
                 xy = msg.slice(1).split(",");
                 player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
             }
 
             // Move Origin of map
-            else if (type == "O" && device) {
+            else if (type == "O") {
                 xy = msg.slice(1).split(",");
                 moveX = xy[0]-0;
                 moveY = xy[1]-0;
@@ -233,6 +233,10 @@
                 e14.origin.y += moveY;
                 e14.loadCurrentLevel([xForm], materials);
             }
+
+            // Tween to Maquette view
+            else if (type == "T")
+                player.tweenToMaquetteView();
         }
     }
 
@@ -363,8 +367,9 @@
 
         if(device)
             device.update(dt);
-        // else
-        //     controls.update(dt);
+
+        TWEEN.update();
+
         stats.update();
     }
 
@@ -417,13 +422,17 @@
                 player.moveToSquare(player.row, player.col + 1, xForm);
             break;
             case 68: // D
-                player.moveToSquare(player.row + 1, player.col , xForm);
+                player.moveToSquare(player.row - 1, player.col , xForm);
             break;
             case 65: // A
-                player.moveToSquare(player.row - 1, player.col, xForm);
+                player.moveToSquare(player.row + 1, player.col, xForm);
             break;
             case 32:
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
+            break;
+            case 13:
+                player.tweenToMaquetteView();
+                socket.send("T");
             break;
         }
         e14.loadCurrentLevel([xForm, xFormMini], materials);

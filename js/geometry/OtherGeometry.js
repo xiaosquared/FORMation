@@ -226,5 +226,18 @@ Player.prototype.moveToSquare = function(row, col, shapedisplay) {
 
     this.avatarPosition.x = -pinPosition.z + displayPosition.x;
     this.avatarPosition.z = pinPosition.x + displayPosition.z;
-    this.mesh.position.copy(this.avatarPosition);
+
+    this.tweenToPosition(this.mesh.position, this.avatarPosition);
+}
+Player.prototype.tweenToPosition = function(fromPosition, toPosition, duration) {
+    var tween = new TWEEN.Tween(fromPosition)
+                            .to(toPosition, duration ? duration : 1000)
+                            .easing(TWEEN.Easing.Sinusoidal.Out)
+                            .onUpdate(function() {
+                                fromPosition.set(this.x, this.y, this.z);
+                            }).start();
+}
+
+Player.prototype.tweenToMaquetteView = function() {
+    this.tweenToPosition(this.mesh.position, this.maquettePosition);
 }
