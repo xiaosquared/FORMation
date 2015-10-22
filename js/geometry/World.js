@@ -238,6 +238,9 @@ Player.prototype.tweenToPosition = function(fromPosition, toPosition, duration) 
                             }).start();
 }
 
-Player.prototype.tweenToMaquetteView = function() {
-    this.tweenToPosition(this.mesh.position, this.maquettePosition);
+Player.prototype.toggleMaquetteView = function() {
+    if (this.mesh.position.x < 0)
+        this.tweenToPosition(this.mesh.position, this.avatarPosition);
+    else
+        this.tweenToPosition(this.mesh.position, this.maquettePosition);
 }

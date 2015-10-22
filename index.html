@@ -52,7 +52,7 @@
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
   <script src="js/tween.js"></script>
-  <script src="js/geometry/OtherGeometry.js"></script>
+  <script src="js/geometry/World.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
   <script src="js/geometry/InputHandler.js"></script>
 
@@ -123,20 +123,18 @@
 
         // Insert map: load it as image!
         //----------------------------------------------------------------------
-        var img = new Image();
-        img.src = 'assets/e14-3.png';
-        img.onload = function() {
-            e14.addLevel(img, 50, 50);
-            console.log("Floor 3 loaded");
-        }
-
-        var img2 = new Image();
-        img2.src = 'assets/e14-5.png';
-        img2.onload = function() {
-            e14.addLevel(img2, 50, 50);
-            console.log("Floor 5 loaded");
-            e14.loadCurrentLevel([xForm, xFormMini], materials);
-            socket.send(xForm.getHeightsMsgForPhysical());
+        loadImages("assets/e14-", 2);
+        function loadImages(path, n) {
+            if (n == 0) {
+                e14.loadCurrentLevel([xForm, xFormMini], materials);
+                return;
+            }
+            var img = new Image();
+            img.src = path + n + ".png";
+            img.onload = function() {
+                e14.addLevel(img, 50, 50);
+                loadImages(path, n-1);
+            }
         }
 
         // Peripheral stuff: stats, control GUI
@@ -236,7 +234,7 @@
 
             // Tween to Maquette view
             else if (type == "T")
-                player.tweenToMaquetteView();
+                player.toggleMaquetteView();
         }
     }
 
@@ -422,16 +420,16 @@
                 player.moveToSquare(player.row, player.col + 1, xForm);
             break;
             case 68: // D
-                player.moveToSquare(player.row - 1, player.col , xForm);
+                player.moveToSquare(player.row + 1, player.col , xForm);
             break;
             case 65: // A
-                player.moveToSquare(player.row + 1, player.col, xForm);
+                player.moveToSquare(player.row - 1, player.col, xForm);
             break;
-            case 32:
+            case 13:    // Enter
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
-            case 13:
-                player.tweenToMaquetteView();
+            case 32:    // Space
+                player.toggleMaquetteView();
                 socket.send("T");
             break;
         }
