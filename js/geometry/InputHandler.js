@@ -32,8 +32,16 @@ function InputManager() {
         // moving the camera
         if (touchType == TOUCH_TYPES.CAMERA_TO) {
             player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
-        } else {
-            // Shifting the level
+        }
+
+        // Shifting the level
+        else if (touchType.value < 4) {
+            //If we are in avatar view, first get out of it
+            if (player.inAvatarView()) {
+                player.goToMaquetteView();
+                return;
+            }
+
             if (touchType == TOUCH_TYPES.LEFT) {
                 e14.origin.x ++;
                 //socket.send("O"+"-1,0");
