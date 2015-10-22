@@ -126,7 +126,7 @@
         loadImages("assets/e14-", 2);
         function loadImages(path, n) {
             if (n == 0) {
-                e14.loadCurrentLevel([xForm, xFormMini], materials);
+                e14.loadCurrentLevel([xForm, xFormMini], true, true);
                 return;
             }
             var img = new Image();
@@ -209,7 +209,7 @@
                 reloadModel = Math.max(reloadModel, 0);
             }
             if (reloadModel)
-                e14.loadCurrentLevel([xForm], materials);
+                e14.loadCurrentLevel([xForm], false, true);
         }
 
         // FOR MESSAGES BETWEEN BROWSERS
@@ -229,7 +229,7 @@
                 moveY = xy[1]-0;
                 e14.origin.x += moveX;
                 e14.origin.y += moveY;
-                e14.loadCurrentLevel([xForm], materials);
+                e14.loadCurrentLevel([xForm, xFormMini], true, true);
             }
 
             // Tween to Maquette view
@@ -433,7 +433,7 @@
                 socket.send("T");
             break;
         }
-        e14.loadCurrentLevel([xForm, xFormMini], materials);
+        e14.loadCurrentLevel([xForm, xFormMini], true, true);
         //socket.send("P"+xForm.getHeightsMsgForPhysical());
     });
 

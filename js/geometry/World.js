@@ -29,7 +29,7 @@ World.prototype.getItemByName = function(name) {
     return;
 }
 // Loads current level into the shape display
-World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
+World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMaterials) {
     var width = shapeDisplays[0].getWidthInPins();
     var height = shapeDisplays[0].getHeightInPins();
 
@@ -40,45 +40,55 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, materials) {
      for (var i = 0; i < this.items.length; i++)
          this.items[i].hide();
 
+    // Iterate through each pixel of the level ONLY ONCE
     for (var i = 0, n = levelData.length; i < n; i += 4) {
         var r = levelData[i];
         var g = levelData[i+1];
         var b = levelData[i+2];
         var a = levelData[i+3];
 
-        // unless we're off the map, R channel encodes height
-        if (a == 0) {
-            shapeDisplays[0].setPinHeightFromPhysical(i/4, 100);
+        // SETTING HEIGHTS
+        if (bSetHeights) {
+            setHeights(shapeDisplays[0], a, r, g);
+            if (shapeDisplays[1])
+                setHeights(shapeDisplays[1], a, r, g);
         }
-        else {
+        function setHeights(shapeDisplay, a, r, g) {
+            // If we are off the map, make everything a default height
+            if (a == 0)
+                shapeDisplay.setPinHeightFromPhysical(i/4, 100);
             // if we're drawing logo, make it indented
             // otherwise, get the height from R channel
-            var h = (g == 222) ? 127 - r/2 : 127 + r/2;
-            shapeDisplays[0].setPinHeightFromPhysical(i/4, h);
-
-            // take care of mini display
-            if (shapeDisplays[1])
-                shapeDisplays[1].setPinHeightFromPhysical(i/4, h);
+            else {
+                var h = (g == 222) ? 127 - r/2 : 127 + r/2;
+                shapeDisplay.setPinHeightFromPhysical(i/4, h);
+            }
         }
 
+        // SETTING MATERIALS
+        if (bSetMaterials) {
+            var material;
+            var isShadow = xForm.shadowPins.indexOf(i/4) >= 0;
+            if (isShadow)
+                material = materials.shadowMaterial;
+            else {
+                if (g == 255 || g == 222)
+                    material = materials.wallMaterial;
+                else if (g == 127)
+                    material = materials.clearMaterial;
+                else
+                    material = materials.darkMaterial;
+            }
+            // set the correct material for the large shape display
+            shapeDisplays[0].setPinMaterial(i/4, material);
 
-        // G channel encodes material
-        var isShadow = xForm.shadowPins.indexOf(i/4) >= 0 ;
-        var material = materials.getDarkMaterial(isShadow);
-        if (g == 255 || g == 222)
-            material = materials.getWallMaterial(isShadow);
-        else if (g == 127)
-            material = materials.getClearMaterial(isShadow);
+            // mini one is always a ghost
+            if (shapeDisplays[1])
+                shapeDisplays[1].setPinMaterial(i/4, materials.ghostMaterial);
 
-        // set the correct material for the large shape display
-        shapeDisplays[0].setPinMaterial(i/4, material);
+        }
 
-        // mini one is always a ghost
-        if (shapeDisplays[1])
-            shapeDisplays[1].setPinMaterial(i/4, materials.getGhostMaterial());
-
-
-        // B channel encodes where items are placed
+        // PLACING ITEMS
         if (b != 127) {
             var item = null;
             if (b == 255)

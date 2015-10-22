@@ -30,19 +30,19 @@ function InputManager() {
         // Shifting the level
         if (touchType == TOUCH_TYPES.LEFT) {
             e14.origin.x ++;
-            socket.send("LevelOrigin-"+"-1,0");
+            socket.send("O"+"-1,0");
         }
         else if (touchType == TOUCH_TYPES.RIGHT) {
             e14.origin.x --;
-            socket.send("LevelOrigin-"+"1,0");
+            socket.send("O"+"1,0");
         }
         else if (touchType == TOUCH_TYPES.TOP) {
             e14.origin.y ++;
-            socket.send("LevelOrigin-"+"0,1");
+            socket.send("O"+"0,1");
         }
         else if (touchType == TOUCH_TYPES.BOTTOM) {
             e14.origin.y --;
-            socket.send("LevelOrigin-"+"0,-1");
+            socket.send("O"+"0,-1");
         }
 
         // moving the camera
