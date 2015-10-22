@@ -202,8 +202,8 @@ function createPingPongTable() {
 ////////////////////////////////////////////////////////////////////////////////
 
 function Player(camera) {
-    this.row;
-    this.col;
+    this.row = 12;
+    this.col = 23;
 
     this.avatarPosition = new THREE.Vector3(0, 13.75, 0);
     this.maquettePosition = new THREE.Vector3(-10, 20, 0);
@@ -250,9 +250,9 @@ Player.prototype.tweenToPosition = function(fromPosition, toPosition, duration) 
 
 Player.prototype.toggleMaquetteView = function() {
     if (this.inAvatarView())
-        this.tweenToPosition(this.mesh.position, this.avatarPosition);
-    else
         this.tweenToPosition(this.mesh.position, this.maquettePosition);
+    else
+        this.tweenToPosition(this.mesh.position, this.avatarPosition);
 }
 Player.prototype.goToMaquetteView = function() {
     if (this.inAvatarView())

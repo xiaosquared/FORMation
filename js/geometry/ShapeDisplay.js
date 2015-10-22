@@ -1,3 +1,18 @@
+// Material Manager
+function MaterialManager() {
+    var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
+    this.wallMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
+    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
+    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
+    this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
+
+    this.shadowMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading });
+    this.shadowClearMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading, transparent:true, opacity: 0.3 });
+
+    this.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
+}
+var materials = new MaterialManager();
+
 function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.pinSize = 1.0;
     this.inBetween = 0.;
@@ -12,14 +27,8 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.touchPins = [];
     this.lastPositions = new Array(xWidth & yWidth);
 
-    var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
-    this.material = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
-    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
-    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
-    this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
-
     for (var i = 0; i < xWidth * yWidth; i++) {
-        var pin = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this.material);
+        var pin = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.darkMaterial);
         pin.position.set(i% xWidth * (this.pinSize + this.inBetween) + this.pinSize/2,
                         0, Math.floor(i/xWidth) * (this.pinSize + this.inBetween) + this.pinSize/2);
         pin.scale.set(1, this.pinHeight, 1);
@@ -29,7 +38,7 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
         this.lastPositions[i] = 0;
     }
 
-    var bottom = new THREE.Mesh(new THREE.BoxGeometry(this.getTotalWidth(), 0.1, this.getTotalWidth()),this.darkMaterial);
+    var bottom = new THREE.Mesh(new THREE.BoxGeometry(this.getTotalWidth(), 0.1, this.getTotalWidth()), materials.darkMaterial);
     bottom.position.set(this.getTotalWidth()/2, 0, this.getTotalWidth()/2);
     this.container.add(bottom);
 
@@ -138,18 +147,4 @@ ShapeDisplay.prototype.getLastPinHeight = function(x, y, height) {
   if (index < this.lastPositions.length)
       return this.lastPositions[index];
   return null;
-}
-
-// Material Manager
-function MaterialManager() {
-    var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
-    this.wallMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
-    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
-    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
-    this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
-
-    this.shadowMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading });
-    this.shadowClearMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading, transparent:true, opacity: 0.3 });
-
-    this.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
 }

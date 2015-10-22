@@ -66,7 +66,6 @@
     var controlVars;
 
     var e14;
-    var materials;
     var xForm, xFormMini;
     var placeholder; // just for testing. This will be an array later!
     var player;
@@ -251,7 +250,6 @@
         // The important stuff: Shape Display stuff
         e14 = new World();
         xForm = new ShapeDisplay(24, 24, 12, scene);
-        materials = new MaterialManager();
 
         // Placeholder object for orientation
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
