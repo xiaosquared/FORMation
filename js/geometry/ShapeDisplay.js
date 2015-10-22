@@ -1,17 +1,17 @@
-// Material Manager
-function MaterialManager() {
+var materials = (function() {
+    var m = {};
     var pinBlack = THREE.ImageUtils.loadTexture('assets/darkPinTexture.jpg');
-    this.wallMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
-    this.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
-    this.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, shading: THREE.SmoothShading, map: pinBlack } );
-    this.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111, shading: THREE.SmoothShading });
+    m.wallMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading } );
+    m.clearMaterial = new THREE.MeshPhongMaterial( { color: 0xeeeeee, shading: THREE.SmoothShading, transparent: true, opacity: 0.3 } );
+    m.darkMaterial = new THREE.MeshLambertMaterial( { color: 0x333333, map: pinBlack } );
+    m.touchMaterial = new THREE.MeshLambertMaterial( {color: 0xdd1111 });
 
-    this.shadowMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading });
-    this.shadowClearMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading, transparent:true, opacity: 0.3 });
+    m.shadowMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading });
+    m.shadowClearMaterial = new THREE.MeshPhongMaterial( {color: 0x666666, shading: THREE.SmoothShading, transparent:true, opacity: 0.3 });
 
-    this.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
-}
-var materials = new MaterialManager();
+    m.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
+    return m;
+})();
 
 function ShapeDisplay(xWidth, yWidth, height, scene) {
     this.pinSize = 1.0;
