@@ -12,7 +12,9 @@ function InputManager() {
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-                touchHandler.addPin(x, y);
+                // get rid of pins that are broken
+                if (!(y == 3 && x < 6) && !(x == 0 && y==18))
+                    touchHandler.addPin(x, y);
             }
         }
         return touchHandler;
@@ -27,27 +29,28 @@ function InputManager() {
         if (touchType != TOUCH_TYPES.NONE)
             console.log("Type: " + touchType.name);
 
-        // Shifting the level
-        if (touchType == TOUCH_TYPES.LEFT) {
-            e14.origin.x ++;
-            socket.send("O"+"-1,0");
-        }
-        else if (touchType == TOUCH_TYPES.RIGHT) {
-            e14.origin.x --;
-            socket.send("O"+"1,0");
-        }
-        else if (touchType == TOUCH_TYPES.TOP) {
-            e14.origin.y ++;
-            socket.send("O"+"0,1");
-        }
-        else if (touchType == TOUCH_TYPES.BOTTOM) {
-            e14.origin.y --;
-            socket.send("O"+"0,-1");
-        }
-
         // moving the camera
-        else if (touchType == TOUCH_TYPES.CAMERA_TO) {
+        if (touchType == TOUCH_TYPES.CAMERA_TO) {
             player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
+        } else {
+            // Shifting the level
+            if (touchType == TOUCH_TYPES.LEFT) {
+                e14.origin.x ++;
+                //socket.send("O"+"-1,0");
+            }
+            else if (touchType == TOUCH_TYPES.RIGHT) {
+                e14.origin.x --;
+                //socket.send("O"+"1,0");
+            }
+            else if (touchType == TOUCH_TYPES.TOP) {
+                e14.origin.y ++;
+                //socket.send("O"+"0,1");
+            }
+            else if (touchType == TOUCH_TYPES.BOTTOM) {
+                e14.origin.y --;
+                //socket.send("O"+"0,-1");
+            }
+            e14.loadCurrentLevel([xForm, xFormMini], true, true);
         }
     }
 
@@ -114,7 +117,6 @@ function TouchHandler(displayWidth, displayHeight) {
             return this.touchType;
 
         // else, figure it out and save it
-
         if (this.touchedX.length == 0)
             this.touchType = TOUCH_TYPES.NONE;
         xSum = this.touchedX.reduce(function(a, b) {
@@ -123,7 +125,7 @@ function TouchHandler(displayWidth, displayHeight) {
         ySum = this.touchedY.reduce(function(a, b) {
             return a + b;
         });
-        console.log(ySum);
+
         if (xSum == 0)
             this.touchType = TOUCH_TYPES.LEFT;
         else if (xSum/this.touchedX.length == this.displayWidth-1)

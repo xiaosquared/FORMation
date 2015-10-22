@@ -91,7 +91,7 @@
         camera.rotation.y = -Math.PI/2;
 
         player = new Player(camera);
-        player.moveToSquare(12, 23, xForm);
+        //player.moveToSquare(12, 23, xForm);
 
         // Controls for iphone
         function setOrientationControls(e) {
@@ -183,19 +183,20 @@
     var shadowThresh = 0;
     var reloadModel = 2;
     function handleMsg(msg) {
-        content = msg.split("-");
-        type = content[0];
-        pins = content.slice(1);
+        type = msg[0];
+        content = msg.slice(1);
+        pins = content.split("-");
 
         // FOR MESSAGE FROM PHYSICAL SHAPE DISPLAY
-        if (type == "touch") {
+        if (type == "T") {
             touchHandler = inputManager.initTouchHandler(pins, xForm.xWidth, xForm.yWidth);
-            inputManager.reactToTouchInput(touchHandler);
+            if (touchHandler)
+                inputManager.reactToTouchInput(touchHandler);
         }
-        else if (type == "shadow") {
+        else if (type == "S") {
             xForm.shadowPins = [];
             if (pins.length > shadowThresh) {
-                console.log("SHADOW ", pins.length);
+                //console.log("SHADOW ", pins.length);
                 for (var i = 0; i < pins.length; i++) {
                     pins[i] = pins[i].split(",");
                     var x = pins[i][0] - 0;
@@ -214,26 +215,23 @@
 
         // FOR MESSAGES BETWEEN BROWSERS
         else if (device) {
-            type = msg[0];
 
             // Move Player (camera)
             if (type == "M") {
-                xy = msg.slice(1).split(",");
+                xy = content.split(",");
                 player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
             }
 
             // Move Origin of map
             else if (type == "O") {
-                xy = msg.slice(1).split(",");
-                moveX = xy[0]-0;
-                moveY = xy[1]-0;
-                e14.origin.x += moveX;
-                e14.origin.y += moveY;
+                xy = content.split(",");
+                e14.origin.x  = xy[0]-0;
+                e14.origin.y = xy[1]-0;
                 e14.loadCurrentLevel([xForm, xFormMini], true, true);
             }
 
             // Tween to Maquette view
-            else if (type == "T")
+            else if (type == "V")
                 player.toggleMaquetteView();
         }
     }
@@ -396,22 +394,23 @@
 
     window.addEventListener('keydown', function(e) {
         //console.log(e.keyCode);
+        var sendOrigin = false;
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
-                socket.send("O"+"1,0");
+                sendOrigin = true;
             break;
             case 39:
                 e14.origin.x --;
-                socket.send("O"+"-1,0");
+                sendOrigin = true;
             break;
             case 38:
                 e14.origin.y ++;
-                socket.send("O"+"0,1");
+                sendOrigin = true;
             break;
             case 40:
                 e14.origin.y --;
-                socket.send("O"+"0,-1");
+                sendOrigin = true;
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
@@ -430,10 +429,13 @@
             break;
             case 32:    // Space
                 player.toggleMaquetteView();
-                socket.send("T");
+                socket.send("V");
             break;
         }
         e14.loadCurrentLevel([xForm, xFormMini], true, true);
+
+        if (sendOrigin)
+            socket.send("O"+ e14.origin.x +","+e14.origin.y);
         //socket.send("P"+xForm.getHeightsMsgForPhysical());
     });
 
