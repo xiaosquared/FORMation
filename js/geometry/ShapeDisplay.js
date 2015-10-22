@@ -153,21 +153,3 @@ function MaterialManager() {
 
     this.ghostMaterial = new THREE.MeshBasicMaterial({color: 0x999999, transparent: true, opacity: 0.5});
 }
-MaterialManager.prototype.getWallMaterial = function(isShadow) {
-    if (isShadow)
-        return this.shadowMaterial;
-    return this.wallMaterial;
-}
-MaterialManager.prototype.getClearMaterial = function(isShadow) {
-    if (isShadow)
-        return this.shadowClearMaterial;
-    return this.clearMaterial;
-}
-MaterialManager.prototype.getDarkMaterial = function(isShadow) {
-    if (isShadow)
-        return this.shadowMaterial;
-    return this.darkMaterial;
-}
-MaterialManager.prototype.getGhostMaterial = function() {
-    return this.ghostMaterial;
-}

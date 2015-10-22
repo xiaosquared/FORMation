@@ -165,7 +165,7 @@ function loadPiano() {
     var loader = new THREE.OBJMTLLoader();
     loader.load( 'assets/piano.obj', 'assets/piano.mtl', function ( object ) {
         var piano = object.children[0];
-        piano.material = materials.getGhostMaterial();
+        piano.material = materials.ghostMaterial;
         piano.name = ('piano');
         piano.scale.set(0.025, 0.025, 0.025);
         piano.rotation.y = -Math.PI/2;
@@ -180,7 +180,7 @@ function createMiniCooperForm() {
     container.scale.set(0.05, 0.05, 0.05);
 
     var cube = new THREE.Mesh(  new THREE.BoxGeometry(36, 24, 36),
-                                materials.getGhostMaterial()    );
+                                materials.ghostMaterial    );
 
     cube.position.set(12, -8, 12);
     container.add(cube);
@@ -191,7 +191,7 @@ function createMiniCooperForm() {
 function createPingPongTable() {
     var pp = new THREE.Mesh();
     var ppSurface = new THREE.Mesh(     new THREE.BoxGeometry(60, 1, 35),
-                                        materials.getGhostMaterial()   );
+                                        materials.ghostMaterial   );
     pp.add(ppSurface);
     pp.position.set(12,14,12);
     pp.scale.set(0.05, 0.05, 0.05);
