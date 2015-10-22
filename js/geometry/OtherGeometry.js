@@ -189,6 +189,38 @@ function createPingPongTable() {
     scene.add(pp);
 }
 
+function createTable() {
+    var tb = new ShapeDisplay(0, 0, 0, scene);
+    var container = tb.container;
+    container.name = "table";
+    container.scale.set(0.05, 0.05, 0.05);
+    
+    x=27; y=5; z=40; //x y z position of top plane of the table 
+    legSize=3;
+    
+    // Create and add top plane of the table
+    var cube = new THREE.Mesh(  new THREE.BoxGeometry(x, y, z),
+                                materials.getGhostMaterial()    );       
+    cube.position.set(0, 20, 0);
+    container.add(cube);
+    
+    // Create legs of table and set their position
+   	var legs= new Array();
+	for(var i=0;i<4;i++)
+		legs.push(new THREE.Mesh(  new THREE.BoxGeometry(legSize,30, legSize), materials.getGhostMaterial() 	)	);
+	
+    legs[0].position.set(x/2-legSize,y,z/2-legSize);
+    legs[1].position.set(-(x/2-legSize),y,z/2-legSize);
+    legs[2].position.set(x/2-legSize,y,-(z/2-legSize));
+    legs[3].position.set(-(x/2-legSize),y,-(z/2-legSize));
+    
+    // Add legs to container
+    for(var i=0;i<4;i++)
+    	container.add(legs[i]);
+    	
+    return tb;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 function Player(scene) {
