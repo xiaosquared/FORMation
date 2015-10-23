@@ -2,15 +2,20 @@ function InputManager() {
     this.touchThresh = 7;
     this.prevTouchHandler;
     this.HOLDING_TIMEOUT = 300;
+    this.HEIGHT_CHANGE_TIMEOUT = 500;
+    this.INITIAL_TIMEOUT = 7000;
 
     this.initTouchHandler = function(pins, width, height) {
         // ignore the broken pins that are always down
         if (pins.length > this.touchThresh) {
+            console.log("TOUCH!");
             touchHandler = new TouchHandler(width, height);
             for (var i = 0; i < pins.length; i++) {
                 pins[i] = pins[i].split(",");
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
+
+                //console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6) && !(x == 0 && y==18))
@@ -59,15 +64,36 @@ function InputManager() {
                 //socket.send("O"+"0,-1");
             }
             e14.loadCurrentLevel([xForm, xFormMini], true, true);
+
+            socket.send("P"+xForm.getHeightsMsgForPhysical());
         }
     }
 
     // figures out types of touch
     this.getTouchType = function(newTouchHandler) {
         var touchType = newTouchHandler.getTouchType();
-        // if there isn't an existing touch handler or if they're different types
-        // just return the touchType of newTouchHandler
-        if ((!this.prevTouchHandler) || touchType != this.prevTouchHandler.getTouchType()){
+
+        // if there isn't an existing touch handler
+        // just return the touchType of the new handler
+        if (!this.prevTouchHandler) {
+            if (touchType.value == 4
+                && newTouchHandler.touchTime < this.INITIAL_TIMEOUT) {
+                    return TOUCH_TYPES.NONE;
+            }
+            else {
+                this.prevTouchHandler = newTouchHandler;
+                return touchType;
+            }
+        }
+
+        // if previous is for moving around, and current one is camera
+        // make sure we are past the timeout
+        if (this.prevTouchHandler.getTouchType().value < 4 && touchType.value == 4
+             && newTouchHandler.touchTime - this.prevTouchHandler.touchTime < this.HEIGHT_CHANGE_TIMEOUT)
+             return TOUCH_TYPES.NONE;
+
+        // Otherwise, if current is different from previous,
+        if (touchType != this.prevTouchHandler.getTouchType()) {
             this.prevTouchHandler = newTouchHandler;
             return touchType;
         }

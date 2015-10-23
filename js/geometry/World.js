@@ -170,6 +170,8 @@ function loadPiano() {
         piano.scale.set(0.025, 0.025, 0.025);
         piano.rotation.y = -Math.PI/2;
         scene.add(piano);
+        piano.add(cube);
+
     }, onProgress, onError);
 }
 

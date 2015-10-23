@@ -90,7 +90,6 @@
         camera.rotation.y = -Math.PI/2;
 
         player = new Player(camera);
-        //player.moveToSquare(12, 23, xForm);
 
         // Controls for iphone
         function setOrientationControls(e) {
@@ -126,6 +125,7 @@
         function loadImages(path, n) {
             if (n == 0) {
                 e14.loadCurrentLevel([xForm, xFormMini], true, true);
+                socket.send("P"+xForm.getHeightsMsgForPhysical());
                 return;
             }
             var img = new Image();
@@ -231,7 +231,7 @@
 
             // Tween to Maquette view
             else if (type == "V")
-                player.toggleMaquetteView();
+               player.toggleMaquetteView();
         }
     }
 
@@ -393,6 +393,7 @@
     window.addEventListener('keydown', function(e) {
         //console.log(e.keyCode);
         var sendOrigin = false;
+        var sendHeights = false;
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
@@ -412,15 +413,19 @@
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
+                sendHeights = true;
             break;
             case 83: // S
                 player.moveToSquare(player.row, player.col + 1, xForm);
+                sendHeights = true;
             break;
             case 68: // D
                 player.moveToSquare(player.row + 1, player.col , xForm);
+                sendHeights = true;
             break;
             case 65: // A
                 player.moveToSquare(player.row - 1, player.col, xForm);
+                sendHeights = true;
             break;
             case 13:    // Enter
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
@@ -430,11 +435,14 @@
                 socket.send("V");
             break;
         }
-        e14.loadCurrentLevel([xForm, xFormMini], true, true);
+        if (sendHeights) {
+            e14.loadCurrentLevel([xForm, xFormMini], true, true);
+            socket.send("P"+xForm.getHeightsMsgForPhysical());
+        }
 
         if (sendOrigin)
             socket.send("O"+ e14.origin.x +","+e14.origin.y);
-        //socket.send("P"+xForm.getHeightsMsgForPhysical());
+
     });
 
   </script>
