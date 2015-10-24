@@ -41,9 +41,11 @@ World.prototype.getItemByName = function(name) {
 }
 
 World.prototype.loadCurrentLevelForAllDisplays = function(bSetHeights, bSetMaterials) {
-    console.log("LOADDDDD");
     if (this.virtualShapeDisplays.length == 0)
         return;
+    // first set all the items to be invisible
+    for (var i = 0; i < this.items.length; i++)
+        this.items[i].hide();
     for (var i = 0; i < this.virtualShapeDisplays.length; i++) {
         this.loadCurrentLevel([this.virtualShapeDisplays[i]], bSetHeights, bSetMaterials, this.offsets[i].x, this.offsets[i].y);
     }
@@ -60,11 +62,7 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
     var level = this.levels[this.currentLevel];
     var levelData = level.getImageData(this.origin.x + offsetX, this.origin.y + offsetY, width,height).data;
 
-    console.log(levelData);
-
-    // first set all the items to be invisible
-     for (var i = 0; i < this.items.length; i++)
-         this.items[i].hide();
+    //console.log(levelData);
 
     // Iterate through each pixel of the level ONLY ONCE
     for (var i = 0, n = levelData.length; i < n; i += 4) {
@@ -93,47 +91,67 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
 
         // SETTING MATERIALS
         if (bSetMaterials) {
-            var material;
-            var isShadow = xForm.shadowPins.indexOf(i/4) >= 0;
-            if (isShadow)
-                material = materials.shadowMaterial;
-            else {
-                if (g == 255 || g == 222)
-                    material = materials.wallMaterial;
-                else if (g == 127)
-                    material = materials.clearMaterial;
-                else
-                    material = materials.darkMaterial;
-            }
-            // set the correct material for the large shape display
-            shapeDisplays[0].setPinMaterial(i/4, material);
-
             // mini one is always a ghost
+            if (shapeDisplays[0].container.name == "xFormMini")
+                shapeDisplays[0].setPinMaterial(i/4, materials.ghostMaterial);
+
+            else {
+                var material;
+                var isShadow = xForm.shadowPins.indexOf(i/4) >= 0;
+                if (isShadow)
+                    material = materials.shadowMaterial;
+                    else {
+                        if (g == 255 || g == 222)
+                            material = materials.wallMaterial;
+                        else if (g == 127)
+                            material = materials.clearMaterial;
+                        else
+                            material = materials.darkMaterial;
+                    }
+                // set the correct material for the large shape display
+                shapeDisplays[0].setPinMaterial(i/4, material);
+            }
+
+            // also for mini one
             if (shapeDisplays[1])
                 shapeDisplays[1].setPinMaterial(i/4, materials.ghostMaterial);
-
         }
 
         // PLACING ITEMS
+        if (shapeDisplays[0].container.name == "xFormMini")
+            return;
+
         if (b != 127) {
             var item = null;
-            if (b == 255)
+            if (b == 255) {
+                //console.log("PIANO");
                 item = this.items[0];
-            else if (b == 222)
+            }
+            else if (b == 222) {
+                //console.log("MINI");
                 item = this.items[1];
-            else if (b == 111)
+            }
+            else if (b == 111) {
+                //console.log("PingPong");
                 item = this.items[2];
+            }
 
             if (item) {
+                //console.log("B " + b);
                 var pinPosition = shapeDisplays[0].pins[i/4].position;
                 var displayPosition = shapeDisplays[0].getPosition();
-                console.log("PIN Y " + pinPosition.y);
+                console.log(shapeDisplays[0].container.name);
+                //console.log("PIN Position ", pinPosition.x, pinPosition.z);
+                //console.log("Display Position ", displayPosition.x, displayPosition.z);
 
                 var x = i/4 % shapeDisplays[0].xWidth;
                 var y = Math.floor(i/4 / shapeDisplays[0].xWidth);
 
-                if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
-                    item.placeInScene(-pinPosition.z + displayPosition.x, shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset, pinPosition.x + displayPosition.z);
+                // hacky way of seeing item is in the scene...
+                if (y > item.top && shapeDisplays[0].yWidth-y > item.bottom) {
+                    item.placeInScene(-pinPosition.z + displayPosition.x,
+                            shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                            pinPosition.x + displayPosition.z);
                 }
             }
         }

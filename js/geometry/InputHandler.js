@@ -1,12 +1,12 @@
 function InputManager() {
-    this.touchThresh = 5;
+    this.touchThresh = 0;
     this.prevTouchHandler;
     this.HOLDING_TIMEOUT = 300;
     this.HEIGHT_CHANGE_TIMEOUT = 500;
     this.INITIAL_TIMEOUT = 7000;
 
     this.initTouchHandler = function(pins, width, height) {
-        console.log("TOUCH!!");
+        //console.log("TOUCH!!");
 
         // ignore the broken pins that are always down
         if (pins.length > this.touchThresh) {
@@ -16,21 +16,13 @@ function InputManager() {
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-                console.log("Touch x, y ", x, y);
+                //console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6)
-                && !(x == 21 && y==16)
-                && !(x == 23 && y==16))
-                // && !(x == 7 && y==17)
-                // && !(x == 9 && y==15)
-                // && !(x == 9 && y==23)
-                // && !(x == 11 && y==15)
-                // && !(x == 18 && y==15)
-                // && !(x == 20 && y==15)
-                // && !(x == 21 && y==15)
-                // && !(x == 21 && y==17)
-                // && !(x == 22 && y==15))
+                && !(x == 0 && y==14)
+                && !(x == 7 && y==17)
+                && !(x == 9 && y==23))
                 {
                     touchHandler.addPin(x, y);
                 }
