@@ -143,5 +143,6 @@ function get_appropriate_ws_url()
 
 	u = u.split('/');
 
-	return pcol + u[0];
+	//return pcol + u[0];
+	return "ws://cooperform.media.mit.edu:9092";
 }

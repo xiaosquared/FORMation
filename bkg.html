@@ -56,7 +56,7 @@
             </p>
             <p>
                 <u>Instructions:</u>
-                To navigate, press along the outer edge of the shape display with 2 or more fingers. To go inside the space, press anywhere within the edges of the shape display with 2 or more fingers and look through the scope. You may also "walk" around the shape display with your fingers. 
+                To navigate, press along the outer edge of the shape display with 2 or more fingers. To go inside the space, press anywhere within the edges of the shape display with 2 or more fingers and look through the scope. You may also "walk" around the shape display with your fingers.
             </p>
         </div>
     </div>
@@ -483,6 +483,7 @@
 
             else {
                 e14.loadCurrentLevelForAllDisplays(true, true);
+                socket.send("O"+ e14.origin.x +","+e14.origin.y);
                 socket.send("P"+xFormMini.getHeightsMsgForPhysical());
             }
         }
