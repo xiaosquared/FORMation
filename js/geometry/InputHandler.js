@@ -1,28 +1,42 @@
 function InputManager() {
-    this.touchThresh = 7;
+    this.touchThresh = 5;
     this.prevTouchHandler;
     this.HOLDING_TIMEOUT = 300;
     this.HEIGHT_CHANGE_TIMEOUT = 500;
     this.INITIAL_TIMEOUT = 7000;
 
     this.initTouchHandler = function(pins, width, height) {
+        console.log("TOUCH!!");
+
         // ignore the broken pins that are always down
         if (pins.length > this.touchThresh) {
-            console.log("TOUCH!");
             touchHandler = new TouchHandler(width, height);
             for (var i = 0; i < pins.length; i++) {
                 pins[i] = pins[i].split(",");
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-                //console.log("Touch x, y ", x, y);
+                console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
-                if (!(y == 3 && x < 6) && !(x == 0 && y==18))
+                if (!(y == 3 && x < 6)
+                && !(x == 21 && y==16)
+                && !(x == 23 && y==16))
+                // && !(x == 7 && y==17)
+                // && !(x == 9 && y==15)
+                // && !(x == 9 && y==23)
+                // && !(x == 11 && y==15)
+                // && !(x == 18 && y==15)
+                // && !(x == 20 && y==15)
+                // && !(x == 21 && y==15)
+                // && !(x == 21 && y==17)
+                // && !(x == 22 && y==15))
+                {
                     touchHandler.addPin(x, y);
+                }
             }
+            return touchHandler;
         }
-        return touchHandler;
     }
 
     // wraps dealing with touches from physical shape display!
@@ -36,7 +50,8 @@ function InputManager() {
 
         // moving the camera
         if (touchType == TOUCH_TYPES.CAMERA_TO) {
-            player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
+            if (device)
+                player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
         }
 
         // Shifting the level
@@ -63,9 +78,18 @@ function InputManager() {
                 e14.origin.y --;
                 //socket.send("O"+"0,-1");
             }
-            e14.loadCurrentLevel([xForm, xFormMini], true, true);
 
-            socket.send("P"+xForm.getHeightsMsgForPhysical());
+            // if we are on the phone, load xForm and xFormMini
+            if (device) {
+                e14.loadCurrentLevel([xForm, xFormMini], true, true);
+            }
+
+            // if it's the background screen
+            else {
+                e14.loadCurrentLevelForAllDisplays(true, true);
+                socket.send("O"+ e14.origin.x +","+e14.origin.y);
+                socket.send("P"+xFormMini.getHeightsMsgForPhysical());
+            }
         }
     }
 

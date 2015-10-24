@@ -38,8 +38,8 @@ function ShapeDisplay(xWidth, yWidth, height, scene) {
         this.lastPositions[i] = 0;
     }
 
-    var bottom = new THREE.Mesh(new THREE.BoxGeometry(this.getTotalWidth(), 0.1, this.getTotalWidth()), materials.darkMaterial);
-    bottom.position.set(this.getTotalWidth()/2, 0, this.getTotalWidth()/2);
+    var bottom = new THREE.Mesh(new THREE.BoxGeometry(this.getTotalWidth(), 0.75, this.getTotalWidth()), materials.darkMaterial);
+    bottom.position.set(this.getTotalWidth()/2, -1, this.getTotalWidth()/2);
     this.container.add(bottom);
 
     if (scene)

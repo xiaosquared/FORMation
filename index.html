@@ -224,14 +224,17 @@
             // Move Origin of map
             else if (type == "O") {
                 xy = content.split(",");
-                e14.origin.x  = xy[0]-0;
-                e14.origin.y = xy[1]-0;
+                e14.setOrigin(xy[0]-0, xy[1]-0);
                 e14.loadCurrentLevel([xForm, xFormMini], true, true);
             }
 
             // Tween to Maquette view
-            else if (type == "V")
-               player.toggleMaquetteView();
+            else if (type == "V") {
+                if (content == "M")
+                    player.goToMaquetteView();
+                else
+                    player.goToAvatarView();
+            }
         }
     }
 
@@ -248,7 +251,7 @@
         scene = new THREE.Scene();
 
         // The important stuff: Shape Display stuff
-        e14 = new World();
+        e14 = new World(0, 24);
         xForm = new ShapeDisplay(24, 24, 12, scene);
 
         // Placeholder object for orientation
@@ -391,7 +394,7 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        //console.log(e.keyCode);
+        console.log(e.keyCode);
         var sendOrigin = false;
         var sendHeights = false;
         switch(e.keyCode) {
@@ -431,8 +434,14 @@
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
             case 32:    // Space
-                player.toggleMaquetteView();
-                socket.send("V");
+                if (player.inAvatarView()) {
+                    player.goToMaquetteView();
+                    socket.send("VM");
+                }
+                else {
+                    player.goToAvatarView();
+                    socket.send("VA");
+                }
             break;
         }
         if (sendHeights) {
@@ -440,8 +449,10 @@
             socket.send("P"+xForm.getHeightsMsgForPhysical());
         }
 
-        if (sendOrigin)
+        if (sendOrigin) {
+            e14.loadCurrentLevel([xForm, xFormMini], true, true);
             socket.send("O"+ e14.origin.x +","+e14.origin.y);
+        }
 
     });
 

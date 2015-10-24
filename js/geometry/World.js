@@ -1,8 +1,12 @@
-function World() {
-    this.origin = {x: 0, y: 0};
+function World(originX, originY, offsetX, offsetY) {
+    this.origin = { x: originX ? originX : 0,
+                    y: originY ? originY : 0 };
     this.levels = [];
     this.items = [];
     this.currentLevel = 0;
+
+    this.virtualShapeDisplays = [];  // purely virtual ones not in MacroScope
+    this.offsets = [];
 }
 
 // Adds a new map to the world's levels
@@ -17,7 +21,14 @@ World.prototype.addLevel = function(img, width, height) {
     context.drawImage(img, 0, 0);
     this.levels.push(context);
 }
-
+World.prototype.setOrigin = function(x, y) {
+    this.origin.x = x;
+    this.origin.y = y;
+}
+World.prototype.addShapeDisplay = function(shapeDisplay, offsetX, offsetY) {
+    this.virtualShapeDisplays.push(shapeDisplay);
+    this.offsets.push({x: offsetX ? offsetX : 0 , y: offsetY ? offsetY : 0});
+}
 World.prototype.addItem = function(item) {
     this.items.push(item);
 }
@@ -28,13 +39,28 @@ World.prototype.getItemByName = function(name) {
     }
     return;
 }
+
+World.prototype.loadCurrentLevelForAllDisplays = function(bSetHeights, bSetMaterials) {
+    console.log("LOADDDDD");
+    if (this.virtualShapeDisplays.length == 0)
+        return;
+    for (var i = 0; i < this.virtualShapeDisplays.length; i++) {
+        this.loadCurrentLevel([this.virtualShapeDisplays[i]], bSetHeights, bSetMaterials, this.offsets[i].x, this.offsets[i].y);
+    }
+}
+
 // Loads current level into the shape display
-World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMaterials) {
+World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMaterials, offsetX, offsetY) {
     var width = shapeDisplays[0].getWidthInPins();
     var height = shapeDisplays[0].getHeightInPins();
 
+    offsetX = offsetX ? offsetX : 0;
+    offsetY = offsetY ? offsetY : 0;
+
     var level = this.levels[this.currentLevel];
-    var levelData = level.getImageData(this.origin.x, this.origin.y, width,height).data;
+    var levelData = level.getImageData(this.origin.x + offsetX, this.origin.y + offsetY, width,height).data;
+
+    console.log(levelData);
 
     // first set all the items to be invisible
      for (var i = 0; i < this.items.length; i++)
@@ -56,11 +82,11 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
         function setHeights(shapeDisplay, a, r, g) {
             // If we are off the map, make everything a default height
             if (a == 0)
-                shapeDisplay.setPinHeightFromPhysical(i/4, 100);
+                shapeDisplay.setPinHeightFromPhysical(i/4, 50);
             // if we're drawing logo, make it indented
             // otherwise, get the height from R channel
             else {
-                var h = (g == 222) ? 127 - r/2 : 127 + r/2;
+                var h = (g == 222) ? Math.max(0, 70 - r/4) : 70 + r/2;
                 shapeDisplay.setPinHeightFromPhysical(i/4, h);
             }
         }
@@ -101,12 +127,13 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
             if (item) {
                 var pinPosition = shapeDisplays[0].pins[i/4].position;
                 var displayPosition = shapeDisplays[0].getPosition();
+                console.log("PIN Y " + pinPosition.y);
 
                 var x = i/4 % shapeDisplays[0].xWidth;
                 var y = Math.floor(i/4 / shapeDisplays[0].xWidth);
 
                 if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
-                    item.placeInScene(-pinPosition.z + displayPosition.x, shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 + item.verticalOffset, pinPosition.x + displayPosition.z);
+                    item.placeInScene(-pinPosition.z + displayPosition.x, shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset, pinPosition.x + displayPosition.z);
                 }
             }
         }
@@ -170,8 +197,6 @@ function loadPiano() {
         piano.scale.set(0.025, 0.025, 0.025);
         piano.rotation.y = -Math.PI/2;
         scene.add(piano);
-        piano.add(cube);
-
     }, onProgress, onError);
 }
 
@@ -259,6 +284,10 @@ Player.prototype.toggleMaquetteView = function() {
 Player.prototype.goToMaquetteView = function() {
     if (this.inAvatarView())
         this.tweenToPosition(this.mesh.position, this.maquettePosition);
+}
+Player.prototype.goToAvatarView = function() {
+    if (!this.inAvatarView())
+        this.tweenToPosition(this.mesh.position, this.avatarPosition);
 }
 Player.prototype.inAvatarView = function() {
     return this.mesh.position.x > this.maquettePosition.x + 1;
