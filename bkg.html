@@ -10,6 +10,32 @@
         background: 0x000000;
         overflow: hidden;
       }
+      #text {
+          position: absolute;
+          left: 120px; top: 70px;
+          font-family: Helvetica, Arial, sans-serif;
+          z-index: 1000;
+      }
+      #title {
+          position: relative;
+          left: -5px; top:0px;
+          color: #ffffff;
+          font-size: 90px;
+      }
+      #authors {
+          position: relative;
+          left: 0px; top:0px;
+          font-family: Helvetica, Arial, sans-serif;
+          color: #dddddd;
+          font-size: 18px;
+      }
+      #description {
+          position: relative;
+          left: 0px; top:30px;
+          width: 800px;
+          color: #333333;
+          font-size: 16px;
+      }
       #container {
         background:0x000000;
         position: absolute;
@@ -21,6 +47,19 @@
     </style>
   </head>
   <body>
+    <div id = "text">
+        <div id="title">MacroScope</div>
+        <div id="authors">Xiao Xiao, Donald Derek Haddad, Penny Webb, <br> Daniel Fitzgerald, Udayan Umpathi, and Hiroshi Ishii</div>
+        <div id="description">
+            <p>
+            Ici est l'espace pour une petite description de ce projet. Je vous raconte une histoire immense. C'est une histoire d'une guerre effrayante entre le monde physical et le monde digital. Au debut de la 21ere siecle, les peuples de la terre sont devenus esclaves du monde digital, l'empire des pixels. Un professeur japonais de MIT a decide de lutter contre l'empire. Donc il a commence une guerre contre les pixels. A la fin le monde physique a gagne. les citoyens digitels ne sont pas detruits. Par contre, ils servissent toujours le monde physique..."
+            </p>
+            <p>
+                <u>Instructions:</u>
+                To navigate, press along the outer edge of the shape display with 2 or more fingers. To go inside the space, press anywhere within the edges of the shape display with 2 or more fingers and look through the scope. You may also "walk" around the shape display with your fingers. 
+            </p>
+        </div>
+    </div>
     <div id="container"></div>
     <script type="x-shader/x-vertex" id="vertexShader">
         varying vec3 vWorldPosition;
@@ -155,7 +194,7 @@
         // control variables
         controlVars = new function () {
             this.stereo = false;
-            this.stats = true;
+            this.stats = false;
             this.cubeX = 20;
             this.cubeY = 0;
             this.cubeZ = 0;
@@ -317,6 +356,7 @@
         stats.domElement.style.position = 'absolute';
         stats.domElement.style.left = '0px';
         stats.domElement.style.top = '0px';
+        stats.domElement.style.opacity = 0;
 
         return stats;
     }
@@ -328,12 +368,13 @@
         gui.add(controlObject, 'cubeY', 0, 20);
         gui.add(controlObject, 'cubeZ', -15, 15);
         gui.add(controlObject, 'mapZ', -15, 15);
-        gui.add(controlObject, 'stats', true).onFinishChange(function() {
+        gui.add(controlObject, 'stats', false).onFinishChange(function() {
             if (controlObject.stats)
                 stats.domElement.style.opacity = 0.9;
             else
                 stats.domElement.style.opacity = 0;
         });
+        gui.close();
     }
 
     function resize() {
