@@ -67,9 +67,10 @@
 
     var e14;
     var xForm, xFormMini;
+    var xFormLeft, xFormRight;
     var placeholder; // just for testing. This will be an array later!
     var player;
-    var device = true;
+    var device;
 
     var socket;
     var inputManager = new InputManager();
@@ -90,6 +91,7 @@
         camera.rotation.y = -Math.PI/2;
 
         player = new Player(camera);
+        player.mesh.position.set(-10, 28.3, 0);
 
         // Controls for iphone
         function setOrientationControls(e) {
@@ -115,6 +117,7 @@
 
         xFormMini = createMiniCooperForm();
         e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
+        e14.addShapeDisplay(xFormMini, 0, 24); // no offset to reflect physical
 
         var pingPongTable = createPingPongTable();
         e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
@@ -124,8 +127,12 @@
         loadImages("assets/e14-", 2);
         function loadImages(path, n) {
             if (n == 0) {
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
-                //socket.send("P"+xForm.getHeightsMsgForPhysical());
+                if (device)
+                    e14.loadCurrentLevel([xForm, xFormMini], true, true);
+                else {
+                    e14.loadCurrentLevelForAllDisplays(true, true);
+                    socket.send("P"+xFormMini.getHeightsMsgForPhysical());
+                }
                 return;
             }
             var img = new Image();
@@ -192,48 +199,17 @@
             if (touchHandler)
                 inputManager.reactToTouchInput(touchHandler);
         }
-        else if (type == "S") {
-            xForm.shadowPins = [];
-            if (pins.length > shadowThresh) {
-                //console.log("SHADOW ", pins.length);
-                for (var i = 0; i < pins.length; i++) {
-                    pins[i] = pins[i].split(",");
-                    var x = pins[i][0] - 0;
-                    var y = pins[i][1] - 0;
 
-                    xForm.shadowPins.push(xForm.getIndex(x, y));
-                    reloadModel = 2;
-                }
-            } else {
-                xForm.shadowPins = [];
-                reloadModel = Math.max(reloadModel, 0);
-            }
-            if (reloadModel)
-                e14.loadCurrentLevel([xForm], false, true);
-        }
+        // Move Origin of map
+        if (type == "O") {
+            xy = content.split(",");
+            e14.setOrigin(xy[0]-0, xy[1]-0);
 
-        // FOR MESSAGES BETWEEN BROWSERS
-        else if (device) {
-
-            // Move Player (camera)
-            if (type == "M") {
-                xy = content.split(",");
-                player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
-            }
-
-            // Move Origin of map
-            else if (type == "O") {
-                xy = content.split(",");
-                e14.setOrigin(xy[0]-0, xy[1]-0);
+            if (device)
                 e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            }
 
-            // Tween to Maquette view
-            else if (type == "V") {
-                if (content == "M")
-                    player.goToMaquetteView();
-                else
-                    player.goToAvatarView();
+            else {
+                e14.loadCurrentLevelForAllDisplays(true, true);
             }
         }
     }
@@ -251,8 +227,21 @@
         scene = new THREE.Scene();
 
         // The important stuff: Shape Display stuff
-        e14 = new World(0, 24);
+        e14 = new World();
+
         xForm = new ShapeDisplay(24, 24, 12, scene);
+        xForm.container.position.x = 40;
+        e14.addShapeDisplay(xForm, 0, 0);
+
+        xFormLeft = new ShapeDisplay(24, 24, 12, scene);
+        xFormLeft.container.position.x = 40;
+        xFormLeft.container.position.z = - xForm.xWidth * 1.5;
+        e14.addShapeDisplay(xFormLeft, -24, 0);
+
+        xFormRight = new ShapeDisplay(24, 24, 12, scene);
+        xFormRight.container.position.x = 40;
+        xFormRight.container.position.z = xForm.xWidth * 0.5;
+        e14.addShapeDisplay(xFormRight, 24, 0);
 
         // Placeholder object for orientation
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -394,7 +383,7 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        console.log(e.keyCode);
+        //console.log(e.keyCode);
         var sendOrigin = false;
         var sendHeights = false;
         switch(e.keyCode) {
@@ -434,25 +423,19 @@
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
             case 32:    // Space
-                if (player.inAvatarView()) {
-                    player.goToMaquetteView();
-                    socket.send("VM");
-                }
-                else {
-                    player.goToAvatarView();
-                    socket.send("VA");
-                }
+                player.toggleMaquetteView();
             break;
         }
         if (sendHeights) {
-            e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            //socket.send("P"+xForm.getHeightsMsgForPhysical());
+
+            // for the phone
+            if (device)
+                e14.loadCurrentLevel([xForm, xFormMini], true, true);
+
+            else
+                e14.loadCurrentLevelForAllDisplays(true, true);
         }
 
-        if (sendOrigin) {
-            e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            socket.send("O"+ e14.origin.x +","+e14.origin.y);
-        }
 
     });
 

@@ -87,7 +87,7 @@ function InputManager() {
             // if it's the background screen
             else {
                 e14.loadCurrentLevelForAllDisplays(true, true);
-                socket.send("O"+ e14.origin.x +","+e14.origin.y);
+                //socket.send("O"+ e14.origin.x +","+e14.origin.y);
                 socket.send("P"+xFormMini.getHeightsMsgForPhysical());
             }
         }
