@@ -118,10 +118,7 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
         }
 
         // PLACING ITEMS
-        if (shapeDisplays[0].container.name == "xFormMini")
-            return;
-
-        if (b != 127) {
+        if (b != 127 && shapeDisplays[0].container.name != "xFormMini") {
             var item = null;
             if (b == 255) {
                 //console.log("PIANO");

@@ -394,7 +394,7 @@
     window.addEventListener('keydown', function(e) {
         console.log(e.keyCode);
         var sendOrigin = false;
-        var sendHeights = true;
+        var setHeights = true;
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
@@ -414,19 +414,19 @@
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
-                sendHeights = true;
+                setHeights = true;
             break;
             case 83: // S
                 player.moveToSquare(player.row, player.col + 1, xForm);
-                sendHeights = true;
+                setHeights = true;
             break;
             case 68: // D
                 player.moveToSquare(player.row + 1, player.col , xForm);
-                sendHeights = true;
+                setHeights = true;
             break;
             case 65: // A
                 player.moveToSquare(player.row - 1, player.col, xForm);
-                sendHeights = true;
+                setHeights = true;
             break;
             case 13:    // Enter
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
@@ -435,13 +435,15 @@
                 player.toggleMaquetteView();
             break;
         }
-        if (sendHeights) {
+        if (setHeights) {
             // for the phone
             if (device)
                 e14.loadCurrentLevel([xForm, xFormMini], true, true);
 
-            else
+            else {
                 e14.loadCurrentLevelForAllDisplays(true, true);
+                socket.send("P"+xFormMini.getHeightsMsgForPhysical());
+            }
         }
 
 
