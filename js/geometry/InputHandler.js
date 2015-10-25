@@ -73,7 +73,7 @@ function InputManager() {
 
             // if we are on the phone, load xForm and xFormMini
             if (device) {
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
+                e14.loadCurrentLevelForAllDisplays(true, true);
             }
 
             // if it's the background screen

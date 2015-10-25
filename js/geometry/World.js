@@ -144,8 +144,17 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
                 var x = i/4 % shapeDisplays[0].xWidth;
                 var y = Math.floor(i/4 / shapeDisplays[0].xWidth);
 
-                // hacky way of seeing item is in the scene...
-                if (y > item.top && shapeDisplays[0].yWidth-y > item.bottom) {
+
+                if (shapeDisplays[0].container.name == "xForm") {
+                    if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
+                        item.placeInScene(-pinPosition.z + displayPosition.x,
+                                shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                                pinPosition.x + displayPosition.z);
+                    }
+                }
+
+                // hacky way of seeing item is in the scene for Bkg screen
+                else if (y > item.top && shapeDisplays[0].yWidth-y > item.bottom) {
                     item.placeInScene(-pinPosition.z + displayPosition.x,
                             shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
                             pinPosition.x + displayPosition.z);
@@ -249,6 +258,7 @@ function Player(camera) {
 
     this.avatarPosition = new THREE.Vector3(0, 13.75, 0);
     this.maquettePosition = new THREE.Vector3(-10, 20, 0);
+    this.bkgPosition = new THREE.Vector3(-10, 28.3, 0);
 
     this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
                             new THREE.MeshLambertMaterial({ color: 'red' }));
@@ -295,6 +305,10 @@ Player.prototype.toggleMaquetteView = function() {
         this.tweenToPosition(this.mesh.position, this.maquettePosition);
     else
         this.tweenToPosition(this.mesh.position, this.avatarPosition);
+}
+Player.prototype.goToBkgView = function () {
+    if (this.inAvatarView())
+        this.tweenToPosition(this.mesh.position, this.bkgPosition);
 }
 Player.prototype.goToMaquetteView = function() {
     if (this.inAvatarView())
