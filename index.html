@@ -209,30 +209,28 @@
         //         e14.loadCurrentLevelForAllDisplays(false, true);
         // }
 
-        // FOR MESSAGES BETWEEN BROWSERS
-        if (device) {
 
-            // Move Player (camera)
-            if (type == "M") {
+        // Move Player (camera)
+        if (type == "M") {
                 xy = content.split(",");
                 player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
-            }
-
-            // Move Origin of map
-            else if (type == "O") {
-                xy = content.split(",");
-                e14.setOrigin(xy[0]-0, xy[1]-0);
-                e14.loadCurrentLevelForAllDisplays(true, true);
-            }
-
-            // Tween to Maquette view
-            else if (type == "V") {
-                if (content == "M")
-                    player.goToMaquetteView();
-                else
-                    player.goToAvatarView();
-            }
         }
+
+        // Move Origin of map
+        else if (type == "O") {
+            xy = content.split(",");
+            e14.setOrigin(xy[0]-0, xy[1]-0);
+            e14.loadCurrentLevelForAllDisplays(true, true);
+        }
+
+        // Tween to Maquette view
+        else if (type == "V") {
+            if (content == "M")
+                player.goToMaquetteView();
+            else
+                player.goToAvatarView();
+        }
+
     }
 
     function setupRendering() {
@@ -277,6 +275,7 @@
         var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.x = -Math.PI / 2;
+        mesh.position.y = 10;
         scene.add(mesh);
     }
 

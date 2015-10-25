@@ -256,8 +256,8 @@ function Player(camera) {
     this.row = 12;
     this.col = 23;
 
-    this.avatarPosition = new THREE.Vector3(0, 13.75, 0);
-    this.maquettePosition = new THREE.Vector3(-10, 20, 0);
+    this.avatarPosition = new THREE.Vector3(0, 12.5, 0);
+    this.maquettePosition = new THREE.Vector3(-7, 20, 0);
     this.bkgPosition = new THREE.Vector3(-10, 28.3, 0);
 
     this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
