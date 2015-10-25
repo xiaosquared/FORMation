@@ -2,8 +2,9 @@ function InputManager() {
     this.touchThresh = 0;
     this.prevTouchHandler;
     this.HOLDING_TIMEOUT = 300;
-    this.HEIGHT_CHANGE_TIMEOUT = 500;
+    this.HEIGHT_CHANGE_TIMEOUT = 700;
     this.INITIAL_TIMEOUT = 7000;
+    this.lastSendHeightsTime = performance.now();
 
     this.initTouchHandler = function(pins, width, height) {
         //console.log("TOUCH!!");
@@ -41,9 +42,12 @@ function InputManager() {
             console.log("Type: " + touchType.name);
 
         // moving the camera
-        if (touchType == TOUCH_TYPES.CAMERA_TO) {
-            if (device)
-                player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
+        if (touchType == TOUCH_TYPES.CAMERA_TO &&
+            (performance.now() - this.lastSendHeightsTime > this.HEIGHT_CHANGE_TIMEOUT)) {
+            console.log("send camera move message");
+            socket.send("M"+touchHandler.getNewPinsX()+","+touchHandler.getNewPinsY());
+            //if (device)
+            //    player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
         }
 
         // Shifting the level
@@ -56,30 +60,28 @@ function InputManager() {
 
             if (touchType == TOUCH_TYPES.LEFT) {
                 e14.origin.x ++;
-                //socket.send("O"+"-1,0");
             }
             else if (touchType == TOUCH_TYPES.RIGHT) {
                 e14.origin.x --;
-                //socket.send("O"+"1,0");
             }
             else if (touchType == TOUCH_TYPES.TOP) {
                 e14.origin.y ++;
-                //socket.send("O"+"0,1");
             }
             else if (touchType == TOUCH_TYPES.BOTTOM) {
                 e14.origin.y --;
-                //socket.send("O"+"0,-1");
             }
 
             // if we are on the phone, load xForm and xFormMini
             if (device) {
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
+                e14.loadCurrentLevelForAllDisplays(true, true);
             }
 
             // if it's the background screen
             else {
                 e14.loadCurrentLevelForAllDisplays(true, true);
-                //socket.send("O"+ e14.origin.x +","+e14.origin.y);
+                socket.send("VM");
+                this.lastSendHeightsTime = performance.now();
+                socket.send("O"+ e14.origin.x +","+e14.origin.y);
                 socket.send("P"+xFormMini.getHeightsMsgForPhysical());
             }
         }
@@ -92,20 +94,14 @@ function InputManager() {
         // if there isn't an existing touch handler
         // just return the touchType of the new handler
         if (!this.prevTouchHandler) {
-            if (touchType.value == 4
-                && newTouchHandler.touchTime < this.INITIAL_TIMEOUT) {
-                    return TOUCH_TYPES.NONE;
-            }
-            else {
-                this.prevTouchHandler = newTouchHandler;
-                return touchType;
-            }
+            this.prevTouchHandler = newTouchHandler;
+            return touchType;
         }
 
         // if previous is for moving around, and current one is camera
         // make sure we are past the timeout
         if (this.prevTouchHandler.getTouchType().value < 4 && touchType.value == 4
-             && newTouchHandler.touchTime - this.prevTouchHandler.touchTime < this.HEIGHT_CHANGE_TIMEOUT)
+            && newTouchHandler.touchTime - this.prevTouchHandler.touchTime < this.HEIGHT_CHANGE_TIMEOUT)
              return TOUCH_TYPES.NONE;
 
         // Otherwise, if current is different from previous,
@@ -166,6 +162,8 @@ function TouchHandler(displayWidth, displayHeight) {
         if (this.touchType != null)
             return this.touchType;
 
+            console.log("how many pins touched " + this.touchedX.length);
+
         // else, figure it out and save it
         if (this.touchedX.length == 0)
             this.touchType = TOUCH_TYPES.NONE;
@@ -186,6 +184,7 @@ function TouchHandler(displayWidth, displayHeight) {
             this.touchType = TOUCH_TYPES.BOTTOM;
         else
             this.touchType = TOUCH_TYPES.CAMERA_TO;
+
         return this.touchType;
     }
 

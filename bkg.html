@@ -56,7 +56,7 @@
             </p>
             <p>
                 <u>Instructions:</u>
-                To navigate, press along the outer edge of the shape display with 2 or more fingers. To go inside the space, press anywhere within the edges of the shape display with 2 or more fingers and look through the scope. You may also "walk" around the shape display with your fingers. 
+                To navigate, press along the outer edge of the shape display with 2 or more fingers. To go inside the space, press anywhere within the edges of the shape display with 2 or more fingers and look through the scope. You may also "walk" around the shape display with your fingers.
             </p>
         </div>
     </div>
@@ -83,7 +83,6 @@
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r72/three.min.js"></script>
   <script src="js/StereoEffect.js"></script>
-  <script src="js/DeviceOrientationControls.js"></script>
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
@@ -109,10 +108,10 @@
     var xFormLeft, xFormRight;
     var placeholder; // just for testing. This will be an array later!
     var player;
-    var device;
 
     var socket;
     var inputManager = new InputManager();
+    var device = false;
 
     init();
     animate();
@@ -132,23 +131,6 @@
         player = new Player(camera);
         player.mesh.position.set(-10, 28.3, 0);
 
-        // Controls for iphone
-        function setOrientationControls(e) {
-            if (!e.alpha) {
-                return;
-            }
-            device = new THREE.DeviceOrientationControls(camera, true);
-            device.connect();
-            device.update();
-
-            element.addEventListener('click', fullscreen, false);
-
-            controlVars.stereo = true;
-
-            window.removeEventListener('deviceorientation', setOrientationControls, true);
-        }
-        window.addEventListener('deviceorientation', setOrientationControls, true);
-
         // Virtual objects
         //----------------------------------------------------------------------
         loadPiano();
@@ -156,7 +138,7 @@
 
         xFormMini = createMiniCooperForm();
         e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
-        e14.addShapeDisplay(xFormMini, 0, 24); // no offset to reflect physical
+        e14.addShapeDisplay(xFormMini, 0, 24);
 
         var pingPongTable = createPingPongTable();
         e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
@@ -166,12 +148,9 @@
         loadImages("assets/e14-", 2);
         function loadImages(path, n) {
             if (n == 0) {
-                if (device)
-                    e14.loadCurrentLevel([xForm, xFormMini], true, true);
-                else {
-                    e14.loadCurrentLevelForAllDisplays(true, true);
-                    socket.send("P"+xFormMini.getHeightsMsgForPhysical());
-                }
+                e14.loadCurrentLevelForAllDisplays(true, true);
+                inputManager.lastSendHeightsTime = performance.now();
+                socket.send("P"+xFormMini.getHeightsMsgForPhysical());
                 return;
             }
             var img = new Image();
@@ -237,19 +216,6 @@
             touchHandler = inputManager.initTouchHandler(pins, xForm.xWidth, xForm.yWidth);
             if (touchHandler)
                 inputManager.reactToTouchInput(touchHandler);
-        }
-
-        // Move Origin of map
-        if (type == "O") {
-            xy = content.split(",");
-            e14.setOrigin(xy[0]-0, xy[1]-0);
-
-            if (device)
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
-
-            else {
-                e14.loadCurrentLevelForAllDisplays(true, true);
-            }
         }
     }
 
@@ -398,10 +364,6 @@
         scene.getObjectByName('cube').position.y = controlVars.cubeY;
         scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
-
-        if(device)
-            device.update(dt);
-
         TWEEN.update();
 
         stats.update();
@@ -435,7 +397,7 @@
     window.addEventListener('keydown', function(e) {
         console.log(e.keyCode);
         var sendOrigin = false;
-        var setHeights = true;
+        var setHeights = false;
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
@@ -473,18 +435,21 @@
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
             break;
             case 32:    // Space
-                player.toggleMaquetteView();
-            break;
+                if (player.inAvatarView()) {
+                    player.goToBkgView();
+                    socket.send("VM");
+                }
+                else {
+                    player.goToAvatarView();
+                    socket.send("VA");
+                }
+                break;
         }
         if (setHeights) {
-            // for the phone
-            if (device)
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
-
-            else {
-                e14.loadCurrentLevelForAllDisplays(true, true);
-                socket.send("P"+xFormMini.getHeightsMsgForPhysical());
-            }
+            e14.loadCurrentLevelForAllDisplays(true, true);
+            inputManager.lastSendHeightsTime = performance.now();
+            socket.send("O"+ e14.origin.x +","+e14.origin.y);
+            socket.send("P"+xFormMini.getHeightsMsgForPhysical());
         }
 
 

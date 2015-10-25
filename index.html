@@ -70,6 +70,7 @@
     var placeholder; // just for testing. This will be an array later!
     var player;
     var device = true;
+    var desktopTest = true;
 
     var socket;
     var inputManager = new InputManager();
@@ -96,6 +97,7 @@
             if (!e.alpha) {
                 return;
             }
+            desktopTest = false;
             device = new THREE.DeviceOrientationControls(camera, true);
             device.connect();
             device.update();
@@ -114,7 +116,9 @@
         e14.addItem(new Item('piano', 0, 1, 1, 1));
 
         xFormMini = createMiniCooperForm();
+        xFormMini.container.name = "xFormMini";
         e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
+        e14.addShapeDisplay(xFormMini, 0, 24);
 
         var pingPongTable = createPingPongTable();
         e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
@@ -124,8 +128,7 @@
         loadImages("assets/e14-", 2);
         function loadImages(path, n) {
             if (n == 0) {
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
-                //socket.send("P"+xForm.getHeightsMsgForPhysical());
+                e14.loadCurrentLevelForAllDisplays(true, true);
                 return;
             }
             var img = new Image();
@@ -179,63 +182,55 @@
         }
     }
 
-    var shadowThresh = 0;
+    var shadowThresh = 5;
     var reloadModel = 2;
     function handleMsg(msg) {
         type = msg[0];
         content = msg.slice(1);
         pins = content.split("-");
 
-        // FOR MESSAGE FROM PHYSICAL SHAPE DISPLAY
-        if (type == "T") {
-            touchHandler = inputManager.initTouchHandler(pins, xForm.xWidth, xForm.yWidth);
-            if (touchHandler)
-                inputManager.reactToTouchInput(touchHandler);
-        }
-        else if (type == "S") {
-            xForm.shadowPins = [];
-            if (pins.length > shadowThresh) {
-                //console.log("SHADOW ", pins.length);
-                for (var i = 0; i < pins.length; i++) {
-                    pins[i] = pins[i].split(",");
-                    var x = pins[i][0] - 0;
-                    var y = pins[i][1] - 0;
+        // if (type == "S") {
+        //     xForm.shadowPins = [];
+        //     if (pins.length > shadowThresh) {
+        //         //console.log("SHADOW ", pins.length);
+        //         for (var i = 0; i < pins.length; i++) {
+        //             pins[i] = pins[i].split(",");
+        //             var x = pins[i][0] - 0;
+        //             var y = pins[i][1] - 0;
+        //
+        //             xForm.shadowPins.push(xForm.getIndex(x, y));
+        //             reloadModel = 2;
+        //         }
+        //     } else {
+        //         xForm.shadowPins = [];
+        //         reloadModel = Math.max(reloadModel-1, 0);
+        //     }
+        //     if (reloadModel)
+        //         e14.loadCurrentLevelForAllDisplays(false, true);
+        // }
 
-                    xForm.shadowPins.push(xForm.getIndex(x, y));
-                    reloadModel = 2;
-                }
-            } else {
-                xForm.shadowPins = [];
-                reloadModel = Math.max(reloadModel, 0);
-            }
-            if (reloadModel)
-                e14.loadCurrentLevel([xForm], false, true);
-        }
 
-        // FOR MESSAGES BETWEEN BROWSERS
-        else if (device) {
-
-            // Move Player (camera)
-            if (type == "M") {
+        // Move Player (camera)
+        if (type == "M") {
                 xy = content.split(",");
                 player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
-            }
-
-            // Move Origin of map
-            else if (type == "O") {
-                xy = content.split(",");
-                e14.setOrigin(xy[0]-0, xy[1]-0);
-                e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            }
-
-            // Tween to Maquette view
-            else if (type == "V") {
-                if (content == "M")
-                    player.goToMaquetteView();
-                else
-                    player.goToAvatarView();
-            }
         }
+
+        // Move Origin of map
+        else if (type == "O") {
+            xy = content.split(",");
+            e14.setOrigin(xy[0]-0, xy[1]-0);
+            e14.loadCurrentLevelForAllDisplays(true, true);
+        }
+
+        // Tween to Maquette view
+        else if (type == "V") {
+            if (content == "M")
+                player.goToMaquetteView();
+            else
+                player.goToAvatarView();
+        }
+
     }
 
     function setupRendering() {
@@ -251,8 +246,10 @@
         scene = new THREE.Scene();
 
         // The important stuff: Shape Display stuff
-        e14 = new World(0, 24);
+        e14 = new World();
         xForm = new ShapeDisplay(24, 24, 12, scene);
+        xForm.container.name = "xForm";
+        e14.addShapeDisplay(xForm, 0, 24);
 
         // Placeholder object for orientation
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -278,6 +275,7 @@
         var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.x = -Math.PI / 2;
+        mesh.position.y = 10;
         scene.add(mesh);
     }
 
@@ -362,8 +360,8 @@
 
         camera.updateProjectionMatrix();
 
-        if(device)
-            device.update(dt);
+         if(device && !desktopTest)
+             device.update(dt);
 
         TWEEN.update();
 
@@ -444,16 +442,6 @@
                 }
             break;
         }
-        if (sendHeights) {
-            e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            //socket.send("P"+xForm.getHeightsMsgForPhysical());
-        }
-
-        if (sendOrigin) {
-            e14.loadCurrentLevel([xForm, xFormMini], true, true);
-            socket.send("O"+ e14.origin.x +","+e14.origin.y);
-        }
-
     });
 
   </script>
