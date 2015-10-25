@@ -62,6 +62,15 @@
     var stats;
     var controlVars;
 
+    // ping pong ball bouncing
+    var ballPos = new THREE.Vector3(0, 5, 0);
+    var ballVel = new THREE.Vector3(25, 0, 0);
+    var tableWidth = 25;
+    var tableLength = 45;
+    var tableHeight = 12.5;
+    var offset = 2;
+
+
     init();
     animate();
 
@@ -171,9 +180,52 @@
         // Placeholder object for orientation
         //----------------------------------------------------------------------
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
-                                    new THREE.MeshLambertMaterial({ color: 'red' }) );
+                                    new THREE.MeshBasicMaterial({ color: 'red' }) );
         cube.name = 'cube';
         scene.add(cube);
+
+        // Other objects
+        var tableWidth = 25;
+        var tableLength = 45;
+        var tableHeight = 12.5;
+        var offset = 2;
+
+        var material = new THREE.MeshBasicMaterial({ color: 'white', transparent: true, opacity: 0.3 });
+        var pp = new THREE.Mesh();
+
+        var ppSurface = new THREE.Mesh(new THREE.BoxGeometry(tableLength, 0.5, tableWidth), material);
+        pp.add(ppSurface);
+
+        var ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 5, 5), material);
+        ball.name = "ball";
+        ball.position.set(ballPos.x, ballPos.y, ballPos.z);
+        ppSurface.add(ball);
+
+
+        var net = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.5, tableWidth), material)
+        pp.add(net);
+
+        var leg1 = new THREE.Mesh(new THREE.BoxGeometry(1, tableHeight, 1), material);
+        leg1.position.set(-tableLength/2 + offset, -tableHeight/2, -tableWidth/2 + offset);
+        pp.add(leg1);
+
+        var leg2 = new THREE.Mesh(new THREE.BoxGeometry(1, tableHeight, 1), material);
+        leg2.position.set(tableLength/2 - offset, -tableHeight/2, -tableWidth/2 + offset);
+        pp.add(leg2);
+
+        var leg3 = new THREE.Mesh(new THREE.BoxGeometry(1, tableHeight, 1), material);
+        leg3.position.set(-tableLength/2 + offset, -tableHeight/2, tableWidth/2 - offset);
+        pp.add(leg3);
+
+        var leg4 = new THREE.Mesh(new THREE.BoxGeometry(1, tableHeight, 1), material);
+        leg4.position.set(tableLength/2 - offset, -tableHeight/2, tableWidth/2 - offset);
+        pp.add(leg4);
+
+        pp.position.set(30, tableHeight, 12);
+        scene.add(pp);
+
+        console.log("surface y " + ppSurface.position.y);
+        console.log("ball y " + ball.position.y);
 
         // Peripheral stuff: stats, control GUI
         //----------------------------------------------------------------------
@@ -242,6 +294,28 @@
       scene.getObjectByName('cube').position.x = controlVars.cubeX;
       scene.getObjectByName('cube').position.y = controlVars.cubeY;
       scene.getObjectByName('cube').position.z = controlVars.cubeZ;
+
+      // update ball position
+      var g = 9.8;
+      ball = scene.getObjectByName('ball');
+      ballVel.y -= g * dt;
+      ball.position.y += (ballVel.y * dt) - (0.5 * g * dt * dt);
+
+      ball.position.x += ballVel.x * dt;
+
+      if (ball.position.y < 0) {
+        ballVel.y = 10;
+        ball.position.y = 0;
+     }
+     if (ball.position.x >= tableLength * .6) {
+         ballVel.x = -ballVel.x;
+         ball.position.x = tableLength * 0.6;
+     } else if (ball.position.x <= -tableLength * .6) {
+         ballVel.x = -ballVel.x;
+         ball.position.x = -tableLength * 0.6;
+     }
+
+     console.log(ball.position.x, ball.position.y);
 
       controls.update(dt);
       stats.update();
