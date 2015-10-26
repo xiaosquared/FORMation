@@ -107,8 +107,8 @@
     var xForm, xFormMini;
     var xFormCenter, xFormLeft, xFormRight;
     var xFormFrontLeft, xFormFrontRight;
-    var placeholder; // just for testing. This will be an array later!
     var player;
+    var pp; // ping pong table :-D
 
     var socket;
     var inputManager = new InputManager();
@@ -142,7 +142,7 @@
         e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
         e14.addShapeDisplay(xFormMini, 0, 24);
 
-        var pingPongTable = createPingPongTable();
+        pp = createPingPongTable();
         e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
 
         // Insert map: load it as image!
@@ -400,6 +400,8 @@
         scene.getObjectByName('cube').position.y = controlVars.cubeY;
         scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
+        //if (pp.mesh.visible)
+            pp.update(dt);
         TWEEN.update();
 
         stats.update();

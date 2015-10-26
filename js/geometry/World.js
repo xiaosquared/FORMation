@@ -252,13 +252,69 @@ function createMiniCooperForm() {
 
 function createPingPongTable() {
     var pp = new THREE.Mesh();
-    var ppSurface = new THREE.Mesh(     new THREE.BoxGeometry(60, 1, 35),
-                                        materials.ghostMaterial   );
+    pp.ballPos = new THREE.Vector3(0, 5, 0);
+    pp.ballVel = new THREE.Vector3(25, 0, 0);
+    pp.tableWidth = 25;
+    pp.tableLength = 45;
+    pp.tableHeight = 12.5;
+    pp.offset = 2;
+
+    pp.update = function(dt) {
+        // g is hardcoded to be 10
+
+        pp.ballVel.y -= 10 * dt;
+        pp.ball.position.y += (pp.ballVel.y * dt) - (5 * dt * dt);
+        pp.ball.position.x += pp.ballVel.x * dt;
+
+        // bouncing
+        if (pp.ball.position.y < 0) {
+            pp.ballVel.y = 10;
+            pp.ball.position.y = 0;
+        }
+
+        // hitting back and forth
+        if (pp.ball.position.x >= pp.tableLength * 0.6) {
+            pp.ballVel.x = -pp.ballVel.x;
+            pp.ball.position.x = pp.tableLength * 0.6;
+        } else if (pp.ball.position.x <= -pp.tableLength * 0.6) {
+            pp.ballVel.x = - pp.ballVel.x;
+            pp.ball.position.x = - pp.tableLength * 0.6;
+        }
+    }
+
+    var m = materials.ghostMaterial;
+    var ppSurface = new THREE.Mesh(new THREE.BoxGeometry(pp.tableLength, 0.5, pp.tableWidth), m);
     pp.add(ppSurface);
+
+    pp.ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 5, 5), m);
+    pp.ball.position.set(pp.ballPos.x, pp.ballPos.y, pp.ballPos.z);
+    ppSurface.add(pp.ball);
+
+    var net = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.5, pp.tableWidth), m)
+    pp.add(net);
+
+    var leg1 = new THREE.Mesh(new THREE.BoxGeometry(1, pp.tableHeight, 1), m);
+    leg1.position.set(-pp.tableLength/2 + pp.offset, -pp.tableHeight/2, -pp.tableWidth/2 + pp.offset);
+    pp.add(leg1);
+
+    var leg2 = new THREE.Mesh(new THREE.BoxGeometry(1, pp.tableHeight, 1), m);
+    leg2.position.set(pp.tableLength/2 - pp.offset, -pp.tableHeight/2, -pp.tableWidth/2 + pp.offset);
+    pp.add(leg2);
+
+    var leg3 = new THREE.Mesh(new THREE.BoxGeometry(1, pp.tableHeight, 1), m);
+    leg3.position.set(-pp.tableLength/2 + pp.offset, -pp.tableHeight/2, pp.tableWidth/2 - pp.offset);
+    pp.add(leg3);
+
+    var leg4 = new THREE.Mesh(new THREE.BoxGeometry(1, pp.tableHeight, 1), m);
+    leg4.position.set(pp.tableLength/2 - pp.offset, -pp.tableHeight/2, pp.tableWidth/2 - pp.offset);
+    pp.add(leg4);
+
     pp.position.set(12,14,12);
     pp.scale.set(0.05, 0.05, 0.05);
     pp.name = 'pingPong';
     scene.add(pp);
+
+    return pp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -359,5 +415,8 @@ Player.prototype.goToBkgAvatarView = function() {
                             .start();
 }
 Player.prototype.inAvatarView = function() {
-    return this.mesh.position.x > this.maquettePosition.x + 1;
+    if (device)
+        return this.mesh.position.x > this.maquettePosition.x + 1;
+    else
+        return this.mesh.position.x > this.bkgPosition.x + 1;
 }
