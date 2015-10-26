@@ -63,13 +63,15 @@ return function () {
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
-  <script src="js/chroma.min.js"></script>
-  <script src="js/geometry/utils.js"></script>
+  <script src="js/sockets.utils.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
   <script src="js/geometry/Box.js"></script>
   <script src="js/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 
   <script>
+
+    var socket; // handles messages with shape display
+
     var camera, scene, renderer;
     var effect, controls;
     var element, container;
@@ -99,6 +101,8 @@ return function () {
     animate();
 
     function init() {
+        setupSocket();
+
         // Basic elements of 3JS: Renderer, Scene, Camera
         //----------------------------------------------------------------------
         renderer = new THREE.WebGLRenderer();
@@ -111,7 +115,9 @@ return function () {
         scene = new THREE.Scene();
 
         camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
-        camera.position.set(-20, 20, 0);
+        camera.position.set(0, 20, 0);
+        //for extended table
+        //camera.position.set(-20, 20, 0);
         scene.add(camera);
 
 
@@ -193,7 +199,7 @@ return function () {
 
         // Shape Display!!
         //----------------------------------------------------------------------
-        xForm = new ShapeDisplay(24, 48, 12, scene);
+        xForm = new ShapeDisplay(24, 24, 12, scene);
         //xForm.setPosition(0, 0);
 
         // Peripheral stuff: stats, control GUI
@@ -219,6 +225,26 @@ return function () {
 
     // Helpful Helper Functions
     //--------------------------------------------------------------------------
+    function setupSocket() {
+        console.log('Setup Socket');
+        socket = new WebSocket( get_appropriate_ws_url());
+
+        try {
+            socket.onopen = function() {
+                console.log("Websocket connection OPEN");
+            }
+            socket.onmessage = function got_packet(msg) {
+                console.log(msg);
+                //handleMsg(msg.data);
+            }
+            socket.onclose = function() {
+                console.log("websocket connection CLOSED");
+            }
+        } catch (exception) {
+            console.log("Something went wrong " + exception);
+        }
+    }
+
     function createStats() {
         var stats = new Stats();
         stats.setMode(0);
@@ -255,6 +281,7 @@ return function () {
 
     // Rendering!
     //--------------------------------------------------------------------------
+    var hack = 0;
     function update(dt) {
       resize();
 
@@ -265,6 +292,10 @@ return function () {
 
       controls.update(dt);
       stats.update();
+
+      if (hack % 3 == 0)
+        socket.send("P"+xForm.getHeightsMsgForPhysical());
+      hack++;
     }
 
     function render(dt) {
@@ -347,7 +378,7 @@ return function () {
         this.code = executedCode;
       }
     }
-    
+
   </script>
   </body>
 </html>
