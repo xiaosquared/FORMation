@@ -146,14 +146,25 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
 
 
                 if (shapeDisplays[0].container.name == "xForm") {
-                    if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
+                    if (! device)
                         item.placeInScene(-pinPosition.z + displayPosition.x,
-                                shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
-                                pinPosition.x + displayPosition.z);
+                            shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                            pinPosition.x + displayPosition.z);
+
+                    else if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
+                        item.placeInScene(-pinPosition.z + displayPosition.x,
+                            shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                            pinPosition.x + displayPosition.z);
                     }
                 }
 
                 // hacky way of seeing item is in the scene for Bkg screen
+                else if (shapeDisplays[0].container.name == 'xFormCenter' && y > item.top) {
+                    item.placeInScene(-pinPosition.z + displayPosition.x,
+                            shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                            pinPosition.x + displayPosition.z);
+                }
+
                 else if (y > item.top && shapeDisplays[0].yWidth-y > item.bottom) {
                     item.placeInScene(-pinPosition.z + displayPosition.x,
                             shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
@@ -255,10 +266,13 @@ function createPingPongTable() {
 function Player(camera) {
     this.row = 12;
     this.col = 23;
+    this.camera = camera;
 
     this.avatarPosition = new THREE.Vector3(0, 12.5, 0);
     this.maquettePosition = new THREE.Vector3(-7, 20, 0);
     this.bkgPosition = new THREE.Vector3(-10, 28.3, 0);
+    this.bkgAvatarPosition = new THREE.Vector3(0, 12.5, 0);
+    this.bkgCameraRotation = new THREE.Vector3(0, -Math.PI/2, 0);
 
     this.mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 1),
                             new THREE.MeshLambertMaterial({ color: 'red' }));
@@ -289,6 +303,9 @@ Player.prototype.moveToSquare = function(row, col, shapedisplay) {
     this.avatarPosition.x = -pinPosition.z + displayPosition.x;
     this.avatarPosition.z = pinPosition.x + displayPosition.z;
 
+    this.bkgAvatarPosition.x = this.avatarPosition.x - 24;
+    this.bkgAvatarPosition.z = this.avatarPosition.z;
+
     this.tweenToPosition(this.mesh.position, this.avatarPosition);
 }
 Player.prototype.tweenToPosition = function(fromPosition, toPosition, duration) {
@@ -299,7 +316,6 @@ Player.prototype.tweenToPosition = function(fromPosition, toPosition, duration) 
                                 fromPosition.set(this.x, this.y, this.z);
                             }).start();
 }
-
 Player.prototype.toggleMaquetteView = function() {
     if (this.inAvatarView())
         this.tweenToPosition(this.mesh.position, this.maquettePosition);
@@ -307,8 +323,19 @@ Player.prototype.toggleMaquetteView = function() {
         this.tweenToPosition(this.mesh.position, this.avatarPosition);
 }
 Player.prototype.goToBkgView = function () {
-    if (this.inAvatarView())
-        this.tweenToPosition(this.mesh.position, this.bkgPosition);
+    var fromPosition = this.mesh.position;
+    var tween = new TWEEN.Tween(this.mesh.position)
+                            .to(this.bkgPosition, 1000)
+                            .easing(TWEEN.Easing.Sinusoidal.Out)
+                            .onUpdate(function() {
+                                fromPosition.set(this.x, this.y, this.z);
+                            })
+                            .onComplete(function() {
+                                xForm.container.visible = false;
+                            })
+                            .start();
+    //this.tweenToPosition(this.camera.rotation, this.bkgCameraRotation);
+
 }
 Player.prototype.goToMaquetteView = function() {
     if (this.inAvatarView())
@@ -317,6 +344,19 @@ Player.prototype.goToMaquetteView = function() {
 Player.prototype.goToAvatarView = function() {
     if (!this.inAvatarView())
         this.tweenToPosition(this.mesh.position, this.avatarPosition);
+}
+Player.prototype.goToBkgAvatarView = function() {
+    var fromPosition = this.mesh.position;
+    var tween = new TWEEN.Tween(fromPosition)
+                            .to(this.bkgAvatarPosition, 1000)
+                            .easing(TWEEN.Easing.Sinusoidal.Out)
+                            .onStart(function() {
+                                xForm.container.visible = true;
+                            })
+                            .onUpdate(function() {
+                                fromPosition.set(this.x, this.y, this.z);
+                            })
+                            .start();
 }
 Player.prototype.inAvatarView = function() {
     return this.mesh.position.x > this.maquettePosition.x + 1;

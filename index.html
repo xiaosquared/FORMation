@@ -91,14 +91,13 @@
         camera.rotation.y = -Math.PI/2;
 
         player = new Player(camera);
-
         // Controls for iphone
         function setOrientationControls(e) {
             if (!e.alpha) {
                 return;
             }
             desktopTest = false;
-            device = new THREE.DeviceOrientationControls(camera, true);
+            device = new THREE.DeviceOrientationControls(camera, socket, true);
             device.connect();
             device.update();
 
@@ -230,7 +229,6 @@
             else
                 player.goToAvatarView();
         }
-
     }
 
     function setupRendering() {

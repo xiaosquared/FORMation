@@ -49,7 +49,7 @@
   <body>
     <div id = "text">
         <div id="title">MacroScope</div>
-        <div id="authors">Xiao Xiao, Donald Derek Haddad, Penny Webb, <br> Daniel Fitzgerald, Udayan Umpathi, and Hiroshi Ishii</div>
+        <div id="authors">Xiao Xiao, Donald Derek, Penny Webb, Daniel Fitzgerald, and Hiroshi Ishii</div>
         <div id="description">
             <p>
             Ici est l'espace pour une petite description de ce projet. Je vous raconte une histoire immense. C'est une histoire d'une guerre effrayante entre le monde physical et le monde digital. Au debut de la 21ere siecle, les peuples de la terre sont devenus esclaves du monde digital, l'empire des pixels. Un professeur japonais de MIT a decide de lutter contre l'empire. Donc il a commence une guerre contre les pixels. A la fin le monde physique a gagne. les citoyens digitels ne sont pas detruits. Par contre, ils servissent toujours le monde physique..."
@@ -105,13 +105,15 @@
 
     var e14;
     var xForm, xFormMini;
-    var xFormLeft, xFormRight;
+    var xFormCenter, xFormLeft, xFormRight;
+    var xFormFrontLeft, xFormFrontRight;
     var placeholder; // just for testing. This will be an array later!
     var player;
 
     var socket;
     var inputManager = new InputManager();
     var device = false;
+    var eul;
 
     init();
     animate();
@@ -217,6 +219,13 @@
             if (touchHandler)
                 inputManager.reactToTouchInput(touchHandler);
         }
+        if(type == "R"){
+            //console.log(content)
+            var q = JSON.parse(content);
+
+            var quat = new THREE.Quaternion(q._x, q._y, q._z, q._w);
+            eul = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
+        }
     }
 
     function setupRendering() {
@@ -235,21 +244,39 @@
         e14 = new World();
 
         xForm = new ShapeDisplay(24, 24, 12, scene);
-        xForm.container.position.x = 40;
-        xForm.container.name = "xFormCenter";
-        e14.addShapeDisplay(xForm, 0, 0);
+        xForm.container.position.x = 16;
+        xForm.container.name = "xForm";
+        e14.addShapeDisplay(xForm, 0, 24);
+        xForm.container.visible = false;
+
+        xFormCenter = new ShapeDisplay(24, 24, 12, scene);
+        xFormCenter.container.position.x = 40;
+        xFormCenter.container.name = "xFormCenter";
+        e14.addShapeDisplay(xFormCenter, 0, 0);
 
         xFormLeft = new ShapeDisplay(24, 24, 12, scene);
         xFormLeft.container.position.x = 40;
-        xFormLeft.container.position.z = - xForm.xWidth * 1.5;
+        xFormLeft.container.position.z = - xFormCenter.xWidth * 1.5;
         xFormLeft.container.name = "xFormLeft";
         e14.addShapeDisplay(xFormLeft, -24, 0);
 
         xFormRight = new ShapeDisplay(24, 24, 12, scene);
         xFormRight.container.position.x = 40;
-        xFormRight.container.position.z = xForm.xWidth * 0.5;
+        xFormRight.container.position.z = xFormCenter.xWidth * 0.5;
         xFormRight.container.name = "xFormRight";
         e14.addShapeDisplay(xFormRight, 24, 0);
+
+        xFormFrontLeft = new ShapeDisplay(24, 24, 12, scene);
+        xFormFrontLeft.container.position.z = - xFormCenter.xWidth * 1.5;
+        xFormFrontLeft.container.position.x = 16;
+        xFormFrontLeft.container.name = "xFormFrontLeft";
+        e14.addShapeDisplay(xFormFrontLeft, -24, 24);
+
+        xFormFrontRight = new ShapeDisplay(24, 24, 12, scene);
+        xFormFrontRight.container.position.x = 16;
+        xFormFrontRight.container.position.z = xFormCenter.xWidth * 0.5;
+        xFormFrontRight.container.name = "xFormRight";
+        e14.addShapeDisplay(xFormFrontRight, 24, 24);
 
         // Placeholder object for orientation
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -261,7 +288,7 @@
         var texture = THREE.ImageUtils.loadTexture('assets/grid.png');
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat = new THREE.Vector2(50, 50);
+        texture.repeat = new THREE.Vector2(20, 20);
         texture.anisotropy = renderer.getMaxAnisotropy();
 
         var material = new THREE.MeshPhongMaterial({
@@ -274,6 +301,7 @@
 
         var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
         var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = -40;
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
     }
@@ -360,6 +388,14 @@
         resize();
 
         camera.updateProjectionMatrix();
+
+        // if avatar mode... rotate Camera
+        // if(player.inAvatarView()){
+        //     camera.rotation.x = eul._x;
+        //     camera.rotation.y = eul._y;
+        //     camera.rotation.z = eul._z;
+        // }
+
         scene.getObjectByName('cube').position.x = controlVars.cubeX;
         scene.getObjectByName('cube').position.y = controlVars.cubeY;
         scene.getObjectByName('cube').position.z = controlVars.cubeZ;
@@ -401,35 +437,35 @@
         switch(e.keyCode) {
             case 37:
                 e14.origin.x ++;
-                sendOrigin = true;
+                setHeights = true;
             break;
             case 39:
                 e14.origin.x --;
-                sendOrigin = true;
+                setHeights = true;
             break;
             case 38:
                 e14.origin.y ++;
-                sendOrigin = true;
+                setHeights = true;
             break;
             case 40:
                 e14.origin.y --;
-                sendOrigin = true;
+                setHeights = true;
             break;
             case 87: // W
                 player.moveToSquare(player.row, player.col - 1, xForm);
-                setHeights = true;
+                sendOrigin = true;
             break;
             case 83: // S
                 player.moveToSquare(player.row, player.col + 1, xForm);
-                setHeights = true;
+                sendOrigin = true;
             break;
             case 68: // D
                 player.moveToSquare(player.row + 1, player.col , xForm);
-                setHeights = true;
+                sendOrigin = true;
             break;
             case 65: // A
                 player.moveToSquare(player.row - 1, player.col, xForm);
-                setHeights = true;
+                sendOrigin = true;
             break;
             case 13:    // Enter
                 e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
@@ -446,6 +482,7 @@
                 break;
         }
         if (setHeights) {
+            console.log("SEND HEIGHTS TO PHYSICAL");
             e14.loadCurrentLevelForAllDisplays(true, true);
             inputManager.lastSendHeightsTime = performance.now();
             socket.send("O"+ e14.origin.x +","+e14.origin.y);

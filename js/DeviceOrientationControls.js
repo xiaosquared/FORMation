@@ -49,7 +49,7 @@
   window.addEventListener('orientationchange', onScreenOrientationChangeEvent, false);
 
 
-THREE.DeviceOrientationControls = function(object) {
+THREE.DeviceOrientationControls = function(object,socket) {
 
   this.object = object;
 
@@ -129,7 +129,10 @@ THREE.DeviceOrientationControls = function(object) {
 
       this.object.quaternion.copy(this.alignQuaternion);
       this.object.quaternion.multiply(this.orientationQuaternion);
-
+      if(socket){
+          var str = JSON.stringify(this.object.quaternion)
+          socket.send("R"+str);
+      }
       if (this.autoForward) {
 
         tempVector3
@@ -186,4 +189,3 @@ THREE.DeviceOrientationControls = function(object) {
 };
 
 })();
-

@@ -17,13 +17,17 @@ function InputManager() {
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-                //console.log("Touch x, y ", x, y);
+                console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6)
                 && !(x == 0 && y==14)
                 && !(x == 7 && y==17)
-                && !(x == 9 && y==23))
+                && !(x == 9 && y==23)
+                && !(x == 6 && y ==23)
+                && !(x == 11 && y ==15)
+                && !(x == 9 && y ==15)
+                && !(x == 23 && y ==23))
                 {
                     touchHandler.addPin(x, y);
                 }
@@ -44,17 +48,25 @@ function InputManager() {
         // moving the camera
         if (touchType == TOUCH_TYPES.CAMERA_TO &&
             (performance.now() - this.lastSendHeightsTime > this.HEIGHT_CHANGE_TIMEOUT)) {
-            console.log("send camera move message");
-            socket.send("M"+touchHandler.getNewPinsX()+","+touchHandler.getNewPinsY());
-            //if (device)
-            //    player.moveToSquare(touchHandler.getNewPinsX(), touchHandler.getNewPinsY(), xForm);
+            console.log("GO TO AVATAR");
+            xForm.container.visible = true;
+            player.goToBkgAvatarView();
+            var mx = touchHandler.getNewPinsX();
+            var my = touchHandler.getNewPinsY();
+            player.moveToSquare(mx, my, xForm)
+            socket.send("M"+mx+","+my);
         }
 
         // Shifting the level
         else if (touchType.value < 4) {
             //If we are in avatar view, first get out of it
             if (player.inAvatarView()) {
-                player.goToMaquetteView();
+                if (device)
+                    player.goToMaquetteView();
+                else {
+                    player.goToBkgView();
+                    socket.send("P"+xFormMini.getHeightsMsgForPhysical());
+                }
                 return;
             }
 
@@ -71,14 +83,10 @@ function InputManager() {
                 e14.origin.y --;
             }
 
-            // if we are on the phone, load xForm and xFormMini
-            if (device) {
-                e14.loadCurrentLevelForAllDisplays(true, true);
-            }
+            e14.loadCurrentLevelForAllDisplays(true, true);
 
             // if it's the background screen
-            else {
-                e14.loadCurrentLevelForAllDisplays(true, true);
+            if (!device) {
                 socket.send("VM");
                 this.lastSendHeightsTime = performance.now();
                 socket.send("O"+ e14.origin.x +","+e14.origin.y);
