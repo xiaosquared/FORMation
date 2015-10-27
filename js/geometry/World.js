@@ -286,7 +286,7 @@ function createPingPongTable() {
     var ppSurface = new THREE.Mesh(new THREE.BoxGeometry(pp.tableLength, 0.5, pp.tableWidth), m);
     pp.add(ppSurface);
 
-    pp.ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 5, 5), m);
+    pp.ball = new THREE.Mesh(new THREE.SphereGeometry(0.8, 5, 5), m);
     pp.ball.position.set(pp.ballPos.x, pp.ballPos.y, pp.ballPos.z);
     ppSurface.add(pp.ball);
 
@@ -309,7 +309,7 @@ function createPingPongTable() {
     leg4.position.set(pp.tableLength/2 - pp.offset, -pp.tableHeight/2, pp.tableWidth/2 - pp.offset);
     pp.add(leg4);
 
-    pp.position.set(12,14,12);
+    pp.position.set(12,pp.tableHeight,12);
     pp.scale.set(0.05, 0.05, 0.05);
     pp.name = 'pingPong';
     scene.add(pp);

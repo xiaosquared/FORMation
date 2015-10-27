@@ -21,13 +21,24 @@ function InputManager() {
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6)
-                && !(x == 0 && y==14)
-                && !(x == 7 && y==17)
-                && !(x == 9 && y==23)
-                && !(x == 6 && y ==23)
-                && !(x == 11 && y ==15)
-                && !(x == 9 && y ==15)
-                && !(x == 23 && y ==23))
+                && !(x == 0 && y == 14)
+                && !(x == 14 && y == 14)
+                && !(x == 9 && y == 15)
+                && !(x == 11 && y == 15)
+                && !(x == 18 && y == 15)
+                && !(x == 20 && y == 15)
+                && !(x == 21 && y == 15)
+                && !(x == 22 && y == 15)
+                && !(x == 6 && y==17)
+                && !(x == 7 && y == 17)
+                && !(x == 21 && y == 17)
+                && !(x == 20 && y == 18)
+                && !(x == 11 && y == 20)
+                && !(x == 15 && y == 20)
+                && !(x == 6 && y == 23)
+                && !(x == 9 && y == 23)
+                && !(x == 12 && y == 23)
+                && !(x == 23 && y == 23))
                 {
                     touchHandler.addPin(x, y);
                 }
@@ -61,11 +72,9 @@ function InputManager() {
         else if (touchType.value < 4) {
             //If we are in avatar view, first get out of it
             if (player.inAvatarView()) {
-                if (device)
-                    player.goToMaquetteView();
-                else {
+                if (!device) {
+                    socket.send("VM");
                     player.goToBkgView();
-                    socket.send("P"+xFormMini.getHeightsMsgForPhysical());
                 }
                 return;
             }
@@ -175,24 +184,25 @@ function TouchHandler(displayWidth, displayHeight) {
         // else, figure it out and save it
         if (this.touchedX.length == 0)
             this.touchType = TOUCH_TYPES.NONE;
-        xSum = this.touchedX.reduce(function(a, b) {
-            return a + b;
-        });
-        ySum = this.touchedY.reduce(function(a, b) {
-            return a + b;
-        });
+        else {
+            xSum = this.touchedX.reduce(function(a, b) {
+                return a + b;
+            });
+            ySum = this.touchedY.reduce(function(a, b) {
+                return a + b;
+            });
 
-        if (xSum == 0)
-            this.touchType = TOUCH_TYPES.LEFT;
-        else if (xSum/this.touchedX.length == this.displayWidth-1)
-            this.touchType = TOUCH_TYPES.RIGHT;
-        else if (ySum == 0)
-            this.touchType = TOUCH_TYPES.TOP;
-        else if (ySum/this.touchedY.length == this.displayHeight-1)
-            this.touchType = TOUCH_TYPES.BOTTOM;
-        else
-            this.touchType = TOUCH_TYPES.CAMERA_TO;
-
+            if (xSum == 0)
+                this.touchType = TOUCH_TYPES.LEFT;
+            else if (xSum/this.touchedX.length == this.displayWidth-1)
+                this.touchType = TOUCH_TYPES.RIGHT;
+            else if (ySum == 0)
+                this.touchType = TOUCH_TYPES.TOP;
+            else if (ySum/this.touchedY.length == this.displayHeight-1)
+                this.touchType = TOUCH_TYPES.BOTTOM;
+            else
+                this.touchType = TOUCH_TYPES.CAMERA_TO;
+        }
         return this.touchType;
     }
 

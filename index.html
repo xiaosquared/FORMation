@@ -67,8 +67,11 @@
 
     var e14;
     var xForm, xFormMini;
+    var xFormCenter, xFormLeft, xFormRight;
+    var xFormFrontLeft, xFormFrontRight;
     var placeholder; // just for testing. This will be an array later!
     var player;
+    var pp;
     var device = true;
     var desktopTest = true;
 
@@ -119,7 +122,7 @@
         e14.addItem(new Item('xFormMini', 0, 2, 0, 1, 1));
         e14.addShapeDisplay(xFormMini, 0, 24);
 
-        var pingPongTable = createPingPongTable();
+        pp = createPingPongTable();
         e14.addItem(new Item('pingPong', 2, 3, 1, 1, 1));
 
         // Insert map: load it as image!
@@ -245,9 +248,39 @@
 
         // The important stuff: Shape Display stuff
         e14 = new World();
+
         xForm = new ShapeDisplay(24, 24, 12, scene);
         xForm.container.name = "xForm";
         e14.addShapeDisplay(xForm, 0, 24);
+
+        xFormCenter = new ShapeDisplay(24, 24, 12, scene);
+        xFormCenter.container.position.x = xForm.container.position.x + 24;
+        xFormCenter.container.name = "xFormCenter";
+        e14.addShapeDisplay(xFormCenter, 0, 0);
+
+        xFormLeft = new ShapeDisplay(24, 24, 12, scene);
+        xFormLeft.container.position.x = xFormCenter.container.position.x;
+        xFormLeft.container.position.z = - xFormCenter.xWidth * 1.5;
+        xFormLeft.container.name = "xFormLeft";
+        e14.addShapeDisplay(xFormLeft, -24, 0);
+
+        xFormRight = new ShapeDisplay(24, 24, 12, scene);
+        xFormRight.container.position.x = xFormCenter.container.position.x;
+        xFormRight.container.position.z = xFormCenter.xWidth * 0.5;
+        xFormRight.container.name = "xFormRight";
+        e14.addShapeDisplay(xFormRight, 24, 0);
+
+        xFormFrontLeft = new ShapeDisplay(24, 24, 12, scene);
+        xFormFrontLeft.container.position.z = - xFormCenter.xWidth * 1.5;
+        xFormFrontLeft.container.position.x = xForm.container.position.x;
+        xFormFrontLeft.container.name = "xFormFrontLeft";
+        e14.addShapeDisplay(xFormFrontLeft, -24, 24);
+
+        xFormFrontRight = new ShapeDisplay(24, 24, 12, scene);
+        xFormFrontRight.container.position.x = xForm.container.position.x;
+        xFormFrontRight.container.position.z = xForm.xWidth * 0.5;
+        xFormFrontRight.container.name = "xFormRight";
+        e14.addShapeDisplay(xFormFrontRight, 24, 24);
 
         // Placeholder object for orientation
         var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
@@ -361,6 +394,7 @@
          if(device && !desktopTest)
              device.update(dt);
 
+        pp.update(dt);
         TWEEN.update();
 
         stats.update();
