@@ -434,23 +434,27 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        console.log(e.keyCode);
+        console.log("key presed ", e.keyCode);
         var sendOrigin = false;
         var setHeights = false;
         switch(e.keyCode) {
             case 37:
+            case 100:   // numpad 6
                 e14.origin.x ++;
                 setHeights = true;
             break;
             case 39:
+            case 102:   // numpad 4
                 e14.origin.x --;
                 setHeights = true;
             break;
             case 38:
+            case 104:   // numpad 8
                 e14.origin.y ++;
                 setHeights = true;
             break;
             case 40:
+            case 98:   // numpad 5
                 e14.origin.y --;
                 setHeights = true;
             break;
@@ -477,6 +481,7 @@
                     player.resetCameraOrientation();
             break;
             case 32:    // Space
+            case 101:   // numpad 5
                 if (player.inAvatarView()) {
                     player.goToBkgView();
                     socket.send("VM");
