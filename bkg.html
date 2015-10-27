@@ -98,6 +98,7 @@
     var camera, scene, renderer;
     var effect, controls;
     var element, container;
+    var bSetCameraRotation = false;
 
     var clock = new THREE.Clock();
     var stats;
@@ -390,17 +391,17 @@
         camera.updateProjectionMatrix();
 
         // if avatar mode... rotate Camera
-        // if(player.inAvatarView()){
-        //     camera.rotation.x = eul._x;
-        //     camera.rotation.y = eul._y;
-        //     camera.rotation.z = eul._z;
-        // }
+        if(bSetCameraRotation && player.inAvatarView()){
+            camera.rotation.x = eul._x;
+            camera.rotation.y = eul._y;
+            camera.rotation.z = eul._z;
+        }
 
         scene.getObjectByName('cube').position.x = controlVars.cubeX;
         scene.getObjectByName('cube').position.y = controlVars.cubeY;
         scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
-        //if (pp.mesh.visible)
+        if (pp.visible)
             pp.update(dt);
         TWEEN.update();
 
@@ -470,7 +471,10 @@
                 sendOrigin = true;
             break;
             case 13:    // Enter
-                e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
+                // e14.runFunctionForUnit(e14.origin.x + player.row, e14.origin.y + player.col, xForm);
+                bSetCameraRotation = !bSetCameraRotation;
+                if (!bSetCameraRotation)
+                    player.resetCameraOrientation();
             break;
             case 32:    // Space
                 if (player.inAvatarView()) {

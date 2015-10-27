@@ -146,24 +146,23 @@ World.prototype.loadCurrentLevel = function(shapeDisplays, bSetHeights, bSetMate
 
 
                 if (shapeDisplays[0].container.name == "xForm") {
-                    if (! device)
                         item.placeInScene(-pinPosition.z + displayPosition.x,
                             shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
                             pinPosition.x + displayPosition.z);
-
-                    else if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
-                        item.placeInScene(-pinPosition.z + displayPosition.x,
-                            shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
-                            pinPosition.x + displayPosition.z);
-                    }
+                    //
+                    // else if (x > item.left && y > item.top && shapeDisplays[0].xWidth-x > item.right && shapeDisplays[0].yWidth-y > item.bottom) {
+                    //     item.placeInScene(-pinPosition.z + displayPosition.x,
+                    //         shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
+                    //         pinPosition.x + displayPosition.z);
+                    // }
                 }
 
-                // hacky way of seeing item is in the scene for Bkg screen
+            // hacky way of seeing item is in the scene for Bkg screen
                 else if (shapeDisplays[0].container.name == 'xFormCenter' && y > item.top) {
                     item.placeInScene(-pinPosition.z + displayPosition.x,
                             shapeDisplays[0].height + shapeDisplays[0].pinHeight/2 - pinPosition.y * .8 + item.verticalOffset,
                             pinPosition.x + displayPosition.z);
-                }
+                        }
 
                 else if (y > item.top && shapeDisplays[0].yWidth-y > item.bottom) {
                     item.placeInScene(-pinPosition.z + displayPosition.x,
@@ -379,12 +378,18 @@ Player.prototype.toggleMaquetteView = function() {
         this.tweenToPosition(this.mesh.position, this.avatarPosition);
 }
 Player.prototype.goToBkgView = function () {
-    var fromPosition = this.mesh.position;
-    var tween = new TWEEN.Tween(this.mesh.position)
-                            .to(this.bkgPosition, 1000)
+    var fromP = this.mesh.position;
+    var fromR = this.camera.rotation;
+    var toP = this.bkgPosition;
+    var toR = this.bkgCameraRotation;
+    var tween = new TWEEN.Tween({x: fromP.x, y: fromP.y, z: fromP.z,
+                                yaw: fromR.x, pitch: fromR.y, roll: fromR.z})
+                            .to({x: toP.x, y: toP.y, z: toP.z,
+                                yaw: toR.x, pitch: toR.y, roll: toR.z}, 1000)
                             .easing(TWEEN.Easing.Sinusoidal.Out)
                             .onUpdate(function() {
-                                fromPosition.set(this.x, this.y, this.z);
+                                fromP.set(this.x, this.y, this.z);
+                                fromR.set(this.yaw, this.pitch, this.roll);
                             })
                             .onComplete(function() {
                                 xForm.container.visible = false;
@@ -414,9 +419,19 @@ Player.prototype.goToBkgAvatarView = function() {
                             })
                             .start();
 }
+Player.prototype.resetCameraOrientation = function() {
+    var fromR = this.camera.rotation;
+    var tween = new TWEEN.Tween(fromR)
+                    .to(this.bkgCameraRotation)
+                    .easing(TWEEN.Easing.Sinusoidal.Out)
+                    .onUpdate(function() {
+                        fromR.set(this.x, this.y, this.z);    
+                    })
+                    .start();
+}
 Player.prototype.inAvatarView = function() {
     if (device)
         return this.mesh.position.x > this.maquettePosition.x + 1;
     else
-        return this.mesh.position.x > this.bkgPosition.x + 1;
+        return this.mesh.position.x >= -7.5;
 }
