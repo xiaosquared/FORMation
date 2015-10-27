@@ -148,7 +148,7 @@
 
         // Insert map: load it as image!
         //----------------------------------------------------------------------
-        loadImages("assets/e14-", 2);
+        loadImages("assets/ML", 1);
         function loadImages(path, n) {
             if (n == 0) {
                 e14.loadCurrentLevelForAllDisplays(true, true);
@@ -159,7 +159,7 @@
             var img = new Image();
             img.src = path + n + ".png";
             img.onload = function() {
-                e14.addLevel(img, 50, 50);
+                e14.addLevel(img, 63, 82);
                 loadImages(path, n-1);
             }
         }
