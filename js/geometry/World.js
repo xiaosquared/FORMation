@@ -1,4 +1,4 @@
-function World(originX, originY, offsetX, offsetY) {
+function World(originX, originY) {
     this.origin = { x: originX ? originX : 0,
                     y: originY ? originY : 0 };
     this.levels = [];
@@ -350,15 +350,19 @@ Player.prototype.moveToSquare = function(row, col, shapedisplay) {
 
     this.row = row, this.col = col;
 
-    if (!device && socket.readyState) {
-        socket.send("M" + this.row + "," + this.col);
-    }
+    // if (!device && socket.readyState) {
+    //     socket.send("M" + this.row + "," + this.col);
+    // }
 
     var pinPosition = shapedisplay.pins[shapedisplay.getIndex(row, col)].position;
     var displayPosition = shapedisplay.getPosition();
 
     this.avatarPosition.x = -pinPosition.z + displayPosition.x;
     this.avatarPosition.z = pinPosition.x + displayPosition.z;
+
+    console.log("Row, col " + row + ", " + col);
+    console.log("Pin z " + pinPosition.z + ", display x " + displayPosition.x );
+    console.log("AVATAR POSITION X ", this.avatarPosition.x );
 
     this.bkgAvatarPosition.x = this.avatarPosition.x - 24;
     this.bkgAvatarPosition.z = this.avatarPosition.z;
@@ -398,7 +402,6 @@ Player.prototype.goToBkgView = function () {
                             })
                             .start();
     //this.tweenToPosition(this.camera.rotation, this.bkgCameraRotation);
-
 }
 Player.prototype.goToMaquetteView = function() {
     if (this.inAvatarView())
@@ -414,10 +417,14 @@ Player.prototype.goToBkgAvatarView = function() {
                             .to(this.bkgAvatarPosition, 1000)
                             .easing(TWEEN.Easing.Sinusoidal.Out)
                             .onStart(function() {
-                                xForm.container.visible = true;
+                                 xForm.container.visible = true;
                             })
                             .onUpdate(function() {
+                                xForm.container.visible = true;
                                 fromPosition.set(this.x, this.y, this.z);
+                            })
+                            .onComplete(function() {
+                                xForm.container.visible = true;
                             })
                             .start();
 }
@@ -425,6 +432,17 @@ Player.prototype.resetCameraOrientation = function() {
     var fromR = this.camera.rotation;
     var tween = new TWEEN.Tween(fromR)
                     .to(this.bkgCameraRotation)
+                    .easing(TWEEN.Easing.Sinusoidal.Out)
+                    .onUpdate(function() {
+                        fromR.set(this.x, this.y, this.z);
+                    })
+                    .start();
+}
+Player.prototype.goToScopeCameraOrientation = function() {
+    var fromR = this.camera.rotation;
+    var toR = {x: eul._x, y: eul._y, z: eul_z};
+    var tween = new TWEEN.Tween(fromR)
+                    .to(toR)
                     .easing(TWEEN.Easing.Sinusoidal.Out)
                     .onUpdate(function() {
                         fromR.set(this.x, this.y, this.z);

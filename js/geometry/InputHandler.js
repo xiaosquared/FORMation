@@ -17,7 +17,7 @@ function InputManager() {
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-                console.log("Touch x, y ", x, y);
+        //        console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6)
@@ -53,19 +53,21 @@ function InputManager() {
         var touchType = this.getTouchType(newTouchHandler);
 
         // Printout for debugging
-        if (touchType != TOUCH_TYPES.NONE)
-            console.log("Type: " + touchType.name);
+    //    if (touchType != TOUCH_TYPES.NONE)
+    //        console.log("Type: " + touchType.name);
 
         // moving the camera
         if (touchType == TOUCH_TYPES.CAMERA_TO &&
             (performance.now() - this.lastSendHeightsTime > this.HEIGHT_CHANGE_TIMEOUT)) {
             console.log("GO TO AVATAR");
             xForm.container.visible = true;
-            player.goToBkgAvatarView();
             var mx = touchHandler.getNewPinsX();
             var my = touchHandler.getNewPinsY();
-            player.moveToSquare(mx, my, xForm)
-            socket.send("M"+mx+","+my);
+            console.log("PLAYER MOVING TO " + mx);
+            player.moveToSquare(mx, my, xForm);
+            socket.send("M"+mx+"-"+my);
+            if (bSetCameraRotation)
+                player.goToScopeCameraOrientation();
         }
 
         // Shifting the level

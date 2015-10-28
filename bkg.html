@@ -242,7 +242,7 @@
         scene = new THREE.Scene();
 
         // The important stuff: Shape Display stuff
-        e14 = new World();
+        e14 = new World(27, -2);
 
         xForm = new ShapeDisplay(24, 24, 12, scene);
         xForm.container.position.x = 16;
@@ -482,14 +482,8 @@
             break;
             case 32:    // Space
             case 101:   // numpad 5
-                if (player.inAvatarView()) {
-                    player.goToBkgView();
-                    socket.send("VM");
-                }
-                else {
-                    player.goToBkgAvatarView();
-                    socket.send("VA");
-                }
+                player.goToBkgView();
+                socket.send("VM");
                 break;
         }
         if (setHeights) {
@@ -497,6 +491,7 @@
             e14.loadCurrentLevelForAllDisplays(true, true);
             inputManager.lastSendHeightsTime = performance.now();
             socket.send("O"+ e14.origin.x +","+e14.origin.y);
+            console.log("ORIGIN ", e14.origin.x, e14.origin.y);
             socket.send("P"+xFormMini.getHeightsMsgForPhysical());
         }
 

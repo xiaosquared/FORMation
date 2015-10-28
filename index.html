@@ -130,6 +130,7 @@
         loadImages("assets/ML", 1);
         function loadImages(path, n) {
             if (n == 0) {
+                e14.setOrigin(27, -2);
                 e14.loadCurrentLevelForAllDisplays(true, true);
                 return;
             }
@@ -189,8 +190,6 @@
     function handleMsg(msg) {
         type = msg[0];
         content = msg.slice(1);
-        pins = content.split("-");
-
         // if (type == "S") {
         //     xForm.shadowPins = [];
         //     if (pins.length > shadowThresh) {
@@ -214,7 +213,10 @@
 
         // Move Player (camera)
         if (type == "M") {
-                xy = content.split(",");
+                xy = content.split("-");
+                x = xy[0]-0;
+                y = xy[1]-0;
+                console.log("PLAYER MOVING TO " + x  + ", " + y);
                 player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
         }
 
@@ -247,9 +249,10 @@
         scene = new THREE.Scene();
 
         // The important stuff: Shape Display stuff
-        e14 = new World();
+        e14 = new World(27, -2);
 
         xForm = new ShapeDisplay(24, 24, 12, scene);
+        xForm.container.position.x = 16;
         xForm.container.name = "xForm";
         e14.addShapeDisplay(xForm, 0, 24);
 
