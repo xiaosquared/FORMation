@@ -21,8 +21,8 @@
       #editor {
         margin-left: 100px;
         margin-top: 30px;
-        width: 800px;
-        height: 800px;
+        width: 1000px;
+        height: 1000px;
         opacity: 0.75;
         z-index: 20;
     }
@@ -32,25 +32,14 @@
     <div id="example"></div>
     <div id="editor">//add global variables here:
 var i = 0;
-var centerX = 12;
-var centerY = 12;
-var sqrt = [];
-for (var x = 0; x < 24; x++) {
-  for (var y = 0; y < 24; y++) {
-    sqrt[x*24 + y] = Math.sqrt( (centerX-x)*(centerX-x) + (centerY-y)*(centerY-y) );
-  }
-}
 
 //this function will be executed with each frame
 return function () {
-  i += 0.02;
-  var phase = 2 * Math.PI * i;
-
-  for (var x = 0; x < 24; x++) {
-    for (var y = 0; y < 24; y++) {
-      var d = sqrt[x*24 + y];
-      var height = Math.sin(d- phase) / d;
-      xForm.setPinHeight(x, y, height);
+  i += 0.075;
+  
+  for (var j = 0; j < 24; j++) {
+    for (var k = 0; k < 24; k++) {
+      xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)) * 0.5);
     }
   }
 };</div>
@@ -58,11 +47,9 @@ return function () {
         <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
     </div>
   <script src="js/three.min.js"></script>
-  <script src="js/StereoEffect.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
-  <script src="js/dat.gui.min.js"></script>
   <script src="js/sockets.utils.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
   <script src="js/geometry/Box.js"></script>
@@ -73,7 +60,7 @@ return function () {
     var socket; // handles messages with shape display
 
     var camera, scene, renderer;
-    var effect, controls;
+    var controls;
     var element, container;
 
     var clock = new THREE.Clock();
@@ -109,8 +96,6 @@ return function () {
         element = renderer.domElement;
         container = document.getElementById('example');
         container.appendChild(element);
-
-        effect = new THREE.StereoEffect(renderer);
 
         scene = new THREE.Scene();
 
@@ -183,20 +168,6 @@ return function () {
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
-        // Placeholder objects for orientation
-        //----------------------------------------------------------------------
-        var cube = new THREE.Mesh(  new THREE.BoxGeometry(1, 1, 1),
-                                    new THREE.MeshLambertMaterial({ color: 'red' }) );
-        cube.name = 'cube';
-        scene.add(cube);
-
-        var transparentMaterial = new THREE.MeshPhongMaterial({color: 'yellow', transparent: true, opacity: 0.7});
-        var shapeDisplayBox = new THREE.Mesh( new THREE.BoxGeometry(24, 24, 24),
-                                                transparentMaterial);
-        shapeDisplayBox.name = "sd";
-        shapeDisplayBox.position.set(15, 0, 0)
-        //scene.add(shapeDisplayBox);
-
         // Shape Display!!
         //----------------------------------------------------------------------
         xForm = new ShapeDisplay(24, 24, 12, scene);
@@ -210,17 +181,6 @@ return function () {
         // create the stats
         stats = createStats();
         document.body.appendChild(stats.domElement);
-
-        // control variables
-        controlVars = new function () {
-            this.stereo = false;
-            this.stats = true;
-            this.cubeX = 20;
-            this.cubeY = 0;
-            this.cubeZ = 0;
-            this.mapZ = 0;
-        };
-            addControls(controlVars);
     }
 
     // Helpful Helper Functions
@@ -256,18 +216,6 @@ return function () {
         return stats;
     }
 
-    function addControls(controlObject) {
-        var gui = new dat.GUI();
-        gui.add(controlObject, 'stereo', true);
-        gui.add(controlObject, 'cubeX', 0, 30);
-        gui.add(controlObject, 'cubeY', 0, 20);
-        gui.add(controlObject, 'cubeZ', -15, 15);
-        gui.add(controlObject, 'mapZ', -15, 15);
-        gui.add(controlObject, 'stats', true).onFinishChange(function() {
-            controlObject.stats ? stats.domElement.style.opacity = 0.9 : stats.domElement.style.opacity = 0;
-        });
-    }
-
     function resize() {
       var width = container.offsetWidth;
       var height = container.offsetHeight;
@@ -276,7 +224,6 @@ return function () {
       camera.updateProjectionMatrix();
 
       renderer.setSize(width, height);
-      effect.setSize(width, height);
     }
 
     // Rendering!
@@ -286,9 +233,6 @@ return function () {
       resize();
 
       camera.updateProjectionMatrix();
-      scene.getObjectByName('cube').position.x = controlVars.cubeX;
-      scene.getObjectByName('cube').position.y = controlVars.cubeY;
-      scene.getObjectByName('cube').position.z = controlVars.cubeZ;
 
       controls.update(dt);
       stats.update();
@@ -299,7 +243,7 @@ return function () {
     }
 
     function render(dt) {
-      controlVars.stereo ? effect.render(scene, camera) : renderer.render(scene, camera);
+      renderer.render(scene, camera);
     }
 
     function animate(t) {
@@ -366,6 +310,7 @@ return function () {
     this.code = function() {};
     this.changeCode = function() {
       console.log("changing");
+      xForm.clearDisplay();
       var _executedCode;
       try {
         var userCode = new Function('"use strict";\n' + editor.getValue());
