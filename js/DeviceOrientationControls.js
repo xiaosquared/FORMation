@@ -130,8 +130,8 @@ THREE.DeviceOrientationControls = function(object,socket) {
       this.object.quaternion.copy(this.alignQuaternion);
       this.object.quaternion.multiply(this.orientationQuaternion);
       if(socket){
-          var str = JSON.stringify(this.object.quaternion)
-          socket.send("R"+str);
+          //var str = JSON.stringify(this.object.quaternion)
+          socket.emit('rotate', this.object.quaternion);
       }
       if (this.autoForward) {
 

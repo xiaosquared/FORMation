@@ -7,7 +7,7 @@ function InputManager() {
     this.lastSendHeightsTime = performance.now();
 
     this.initTouchHandler = function(pins, width, height) {
-        //console.log("TOUCH!!");
+        ////console.log("TOUCH!!");
 
         // ignore the broken pins that are always down
         if (pins.length > this.touchThresh) {
@@ -17,7 +17,7 @@ function InputManager() {
                 var x = pins[i][0] - 0;
                 var y = pins[i][1] - 0;
 
-        //        console.log("Touch x, y ", x, y);
+        //        //console.log("Touch x, y ", x, y);
 
                 // get rid of pins that are broken
                 if (!(y == 3 && x < 6)
@@ -54,18 +54,18 @@ function InputManager() {
 
         // Printout for debugging
     //    if (touchType != TOUCH_TYPES.NONE)
-    //        console.log("Type: " + touchType.name);
+    //        //console.log("Type: " + touchType.name);
 
         // moving the camera
         if (touchType == TOUCH_TYPES.CAMERA_TO &&
             (performance.now() - this.lastSendHeightsTime > this.HEIGHT_CHANGE_TIMEOUT)) {
-            console.log("GO TO AVATAR");
+            //console.log("GO TO AVATAR");
             xForm.container.visible = true;
             var mx = touchHandler.getNewPinsX();
             var my = touchHandler.getNewPinsY();
-            console.log("PLAYER MOVING TO " + mx);
+            //console.log("PLAYER MOVING TO " + mx);
             player.moveToSquare(mx, my, xForm);
-            socket.send("V"+mx+"-"+my);
+            socketIO.emit("MoveCamera",{x:mx, y:my});
             if (bSetCameraRotation)
                 player.goToScopeCameraOrientation();
         }
@@ -75,7 +75,7 @@ function InputManager() {
             //If we are in avatar view, first get out of it
             if (player.inAvatarView()) {
                 if (!device) {
-                    socket.send("VM");
+                    socketIO.emit("ViewOut", true);
                     player.goToBkgView();
                 }
                 return;
@@ -100,7 +100,8 @@ function InputManager() {
             if (!device) {
                 socket.send("VM");
                 this.lastSendHeightsTime = performance.now();
-                socket.send("O"+ e14.origin.x +","+e14.origin.y);
+                socketIO.emit("Origin",{x:e14.origin.x, y:e14.origin.y});
+                //console.log("SEND ORIGIN %d %d", e14.origin.x, e14.origin.y);
                 socket.send("P"+xFormMini.getHeightsMsgForPhysical());
             }
         }
@@ -181,7 +182,7 @@ function TouchHandler(displayWidth, displayHeight) {
         if (this.touchType != null)
             return this.touchType;
 
-            console.log("how many pins touched " + this.touchedX.length);
+            //console.log("how many pins touched " + this.touchedX.length);
 
         // else, figure it out and save it
         if (this.touchedX.length == 0)
@@ -224,7 +225,7 @@ function TouchHandler(displayWidth, displayHeight) {
         if (this.newPins.length == 0)
             return this.touchedX;
         return this.touchedX.filter(function(elt, i) {
-            //console.log("huh " + this.newPins);
+            ////console.log("huh " + this.newPins);
             return newPins.indexOf(i) >= 0;
         });
     }

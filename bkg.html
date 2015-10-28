@@ -106,6 +106,7 @@
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
   <script src="js/sockets.utils.js"></script>
+  <script src="http://cooperform.media.mit.edu:3000/socket.io/socket.io.js"></script>
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
   <script src="js/tween.js"></script>
@@ -131,13 +132,17 @@
     var pp; // ping pong table :-D
 
     var socket;
+    var socketIO = io.connect("http://cooperform.media.mit.edu:3000")
     var inputManager = new InputManager();
     var device = false;
     var eul;
 
     init();
     animate();
-
+    socketIO.on('rotatePlayer', function(q){
+            var quat = new THREE.Quaternion(q._x, q._y, q._z, q._w);
+            eul = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
+    })
     function init() {
 
         setupSocket();      //Init the Websocket
@@ -239,13 +244,13 @@
             if (touchHandler)
                 inputManager.reactToTouchInput(touchHandler);
         }
-        if(type == "R"){
-            //console.log(content)
-            var q = JSON.parse(content);
-
-            var quat = new THREE.Quaternion(q._x, q._y, q._z, q._w);
-            eul = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
-        }
+        // if(type == "R"){
+        //     //console.log(content)
+        //     var q = JSON.parse(content);
+        //
+        //     var quat = new THREE.Quaternion(q._x, q._y, q._z, q._w);
+        //     eul = new THREE.Euler().setFromQuaternion(quat, 'XYZ');
+        // }
     }
 
     function setupRendering() {
@@ -502,15 +507,13 @@
             case 32:    // Space
             case 101:   // numpad 5
                 player.goToBkgView();
-                socket.send("VM");
+                socketIO.emit("ViewOut", true);
                 break;
         }
         if (setHeights) {
-            console.log("SEND HEIGHTS TO PHYSICAL");
             e14.loadCurrentLevelForAllDisplays(true, true);
             inputManager.lastSendHeightsTime = performance.now();
-            socket.send("O"+ e14.origin.x +","+e14.origin.y);
-            console.log("ORIGIN ", e14.origin.x, e14.origin.y);
+            socketIO.emit("Origin",{x:e14.origin.x, y:e14.origin.y});
             socket.send("P"+xFormMini.getHeightsMsgForPhysical());
         }
 

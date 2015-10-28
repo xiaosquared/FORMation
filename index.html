@@ -48,6 +48,7 @@
   <script src="js/OrbitControls.js"></script>
   <script src="js/stats.min.js"></script>
   <script src="js/dat.gui.min.js"></script>
+  <script src="http://cooperform.media.mit.edu:3000/socket.io/socket.io.js"></script>
   <script src="js/sockets.utils.js"></script>
   <script src="js/loaders/MTLLoader.js"></script>
   <script src="js/loaders/OBJMTLLoader.js"></script>
@@ -75,15 +76,33 @@
     var device = true;
     var desktopTest = true;
 
-    var socket;
+    //var socket;
+    var socketIO = io.connect("http://cooperform.media.mit.edu:3000")
     var inputManager = new InputManager();
 
     init();
     animate();
 
+    socketIO.on('MovingCamera', function(data){
+        player.moveToSquare(data.x, data.y, xForm);
+    })
+
+    socketIO.on('ShiftOrigin', function(data){
+        e14.setOrigin(data.x, data.y);
+        e14.loadCurrentLevelForAllDisplays(true, true);
+    });
+
+    socketIO.on('ViewZoomOut', function(data) {
+        if (data)
+            player.goToMaquetteView();
+        else {
+            player.goToAvatarView();
+        }
+    });
+
     function init() {
 
-        setupSocket();      //Init the Websocket
+        //setupSocket();      //Init the Websocket
         setupRendering();   // Make the renderer and stereo effect
         setupScene();       // Scene + Shape Display!
         setupLights();      // Lights and shaders
@@ -100,7 +119,7 @@
                 return;
             }
             desktopTest = false;
-            device = new THREE.DeviceOrientationControls(camera, socket, true);
+            device = new THREE.DeviceOrientationControls(camera, socketIO, true);
             device.connect();
             device.update();
 
@@ -148,8 +167,8 @@
         setTimeout(resize, 1);
 
         // create the stats
-        stats = createStats();
-        document.body.appendChild(stats.domElement);
+        //stats = createStats();
+        //document.body.appendChild(stats.domElement);
 
         // control variables
         controlVars = new function () {
@@ -160,81 +179,81 @@
             this.cubeZ = 0;
             this.mapZ = 0;
         };
-        addControls(controlVars);
+        //addControls(controlVars);
     }
 
-    // Helpful Helper Functions
-    //--------------------------------------------------------------------------
-    function setupSocket() {
-        console.log('Setup Socket');
-        socket = new WebSocket( get_appropriate_ws_url());
-
-        try {
-            socket.onopen = function() {
-                console.log("Websocket connection OPEN");
-            }
-            socket.onmessage = function got_packet(msg) {
-                //console.log("message");
-                handleMsg(msg.data);
-            }
-            socket.onclose = function() {
-                console.log("websocket connection CLOSED");
-            }
-        } catch (exception) {
-            console.log("Something went wrong " + exception);
-        }
-    }
-
-    var shadowThresh = 5;
-    var reloadModel = 2;
-    function handleMsg(msg) {
-        type = msg[0];
-        content = msg.slice(1);
-        // if (type == "S") {
-        //     xForm.shadowPins = [];
-        //     if (pins.length > shadowThresh) {
-        //         //console.log("SHADOW ", pins.length);
-        //         for (var i = 0; i < pins.length; i++) {
-        //             pins[i] = pins[i].split(",");
-        //             var x = pins[i][0] - 0;
-        //             var y = pins[i][1] - 0;
-        //
-        //             xForm.shadowPins.push(xForm.getIndex(x, y));
-        //             reloadModel = 2;
-        //         }
-        //     } else {
-        //         xForm.shadowPins = [];
-        //         reloadModel = Math.max(reloadModel-1, 0);
-        //     }
-        //     if (reloadModel)
-        //         e14.loadCurrentLevelForAllDisplays(false, true);
-        // }
-
-
-        // Move Player (camera)
-        if (type == "V") {
-                xy = content.split("-");
-                x = xy[0]-0;
-                y = xy[1]-0;
-                console.log("PLAYER MOVING TO " + x  + ", " + y );
-                player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
-        }
-
-        // Move Origin of map
-        else if (type == "O") {
-            xy = content.split(",");
-            e14.setOrigin(xy[0]-0, xy[1]-0);
-            e14.loadCurrentLevelForAllDisplays(true, true);
-        }
-
-        // Tween to Maquette view
-        else if (type == "V") {
-            if (content == "M")
-                player.goToMaquetteView();
-            else
-                player.goToAvatarView();
-        }
-    }
+    // COMMENTED OUT OLD SHITTY CODE
+    // //--------------------------------------------------------------------------
+    // function setupSocket() {
+    //     ////console.log('Setup Socket');
+    //     socket = new WebSocket( get_appropriate_ws_url());
+    //
+    //     try {
+    //         socket.onopen = function() {
+    //             ////console.log("Websocket connection OPEN");
+    //         }
+    //         socket.onmessage = function got_packet(msg) {
+    //             //////console.log("message");
+    //             handleMsg(msg.data);
+    //         }
+    //         socket.onclose = function() {
+    //             ////console.log("websocket connection CLOSED");
+    //         }
+    //     } catch (exception) {
+    //         ////console.log("Something went wrong " + exception);
+    //     }
+    // }
+    //
+    // var shadowThresh = 5;
+    // var reloadModel = 2;
+    // function handleMsg(msg) {
+    //     type = msg[0];
+    //     content = msg.slice(1);
+    //     // if (type == "S") {
+    //     //     xForm.shadowPins = [];
+    //     //     if (pins.length > shadowThresh) {
+    //     //         ////console.log("SHADOW ", pins.length);
+    //     //         for (var i = 0; i < pins.length; i++) {
+    //     //             pins[i] = pins[i].split(",");
+    //     //             var x = pins[i][0] - 0;
+    //     //             var y = pins[i][1] - 0;
+    //     //
+    //     //             xForm.shadowPins.push(xForm.getIndex(x, y));
+    //     //             reloadModel = 2;
+    //     //         }
+    //     //     } else {
+    //     //         xForm.shadowPins = [];
+    //     //         reloadModel = Math.max(reloadModel-1, 0);
+    //     //     }
+    //     //     if (reloadModel)
+    //     //         e14.loadCurrentLevelForAllDisplays(false, true);
+    //     // }
+    //
+    //
+    //     // Move Player (camera)
+    //     // if (type == "M") {
+    //     //         xy = content.split("-");
+    //     //         x = xy[0]-0;
+    //     //         y = xy[1]-0;
+    //     //         //console.log("PLAYER MOVING TO " + x  + ", " + y );
+    //     //         player.moveToSquare(xy[0]-0, xy[1]-0, xForm);
+    //     // }
+    //
+    //     // Move Origin of map
+    //     // if (type == "O") {
+    //     //     xy = content.split(",");
+    //     //     e14.setOrigin(xy[0]-0, xy[1]-0);
+    //     //     e14.loadCurrentLevelForAllDisplays(true, true);
+    //     // }
+    //
+    //     // Tween to Maquette view
+    //     // if (type == "V") {
+    //     //     if (content == "M")
+    //     //         player.goToMaquetteView();
+    //     //     else
+    //     //         player.goToAvatarView();
+    //     // }
+    // }
 
     function setupRendering() {
         renderer = new THREE.WebGLRenderer();
@@ -400,7 +419,7 @@
         pp.update(dt);
         TWEEN.update();
 
-        stats.update();
+        //stats.update();
     }
 
     function render(dt) {
@@ -427,7 +446,7 @@
     }
 
     window.addEventListener('keydown', function(e) {
-        console.log(e.keyCode);
+        //console.log(e.keyCode);
         var sendOrigin = false;
         var sendHeights = false;
         switch(e.keyCode) {
