@@ -65,7 +65,7 @@ function InputManager() {
             var my = touchHandler.getNewPinsY();
             console.log("PLAYER MOVING TO " + mx);
             player.moveToSquare(mx, my, xForm);
-            socket.send("M"+mx+"-"+my);
+            socket.send("V"+mx+"-"+my);
             if (bSetCameraRotation)
                 player.goToScopeCameraOrientation();
         }
