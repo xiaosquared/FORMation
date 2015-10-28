@@ -229,7 +229,8 @@ function loadPiano() {
         piano.material = materials.ghostMaterial;
         piano.name = ('piano');
         piano.scale.set(0.025, 0.025, 0.025);
-        piano.rotation.y = -Math.PI/2;
+        piano.position.x -= 2;
+        piano.rotation.y = Math.PI;
         scene.add(piano);
     }, onProgress, onError);
 }
@@ -310,6 +311,7 @@ function createPingPongTable() {
 
     pp.position.set(12,pp.tableHeight,12);
     pp.scale.set(0.05, 0.05, 0.05);
+    pp.rotation.y = Math.PI/2;
     pp.name = 'pingPong';
     scene.add(pp);
 
@@ -425,7 +427,7 @@ Player.prototype.resetCameraOrientation = function() {
                     .to(this.bkgCameraRotation)
                     .easing(TWEEN.Easing.Sinusoidal.Out)
                     .onUpdate(function() {
-                        fromR.set(this.x, this.y, this.z);    
+                        fromR.set(this.x, this.y, this.z);
                     })
                     .start();
 }
