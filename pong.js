@@ -53,16 +53,17 @@ return function () {
     bulletXSpeed = -bulletXSpeed;
   }
   if (bullet.y > xForm.yWidth - bullet.yWidth || bullet.y < 1) {
-    bulletYSpeed = -bulletYSpeed;
+    bullet.destroy();
+    bullet.x = 12.5;
   }
   //bullet collision
   if ((bullet.collides(paddle) && bulletYSpeed < 0) || (bullet.collides(playerPaddle) && bulletYSpeed > 0)) {
     bulletYSpeed = -bulletYSpeed;
-    if (Math.abs(bulletYSpeed < 0.3)) {
+    if (Math.abs(bulletYSpeed < 0.2)) {
       if (bulletYSpeed < 0) {
-        bulletYSpeed -= 0.01;
+        bulletYSpeed -= 0.005;
       }
-      else bulletYSpeed += 0.01;
+      else bulletYSpeed += 0.005;
     }
     if (bulletXSpeed > 0) {
       bulletXSpeed = Math.random(0) * 0.2;
