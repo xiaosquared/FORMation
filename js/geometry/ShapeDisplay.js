@@ -96,6 +96,8 @@ ShapeDisplay.prototype.getHeightsMsgForPhysical = function() {
     for (var x = 0; x < this.xWidth; x++) {
         for (var y = 0; y < this.yWidth; y++) {
             var h = this.getPinHeightForPhysical(x, y);
+            h = h < 0 ? 0 : h;
+            h = h > 255 ? 255 : h;
             msg += x + "," + y + "," + h + "-";
         }
     }

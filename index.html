@@ -36,7 +36,7 @@ var i = 0;
 //this function will be executed with each frame
 return function () {
   i += 0.075;
-  
+
   for (var j = 0; j < 24; j++) {
     for (var k = 0; k < 24; k++) {
       xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)) * 0.5);
@@ -49,7 +49,6 @@ return function () {
   <script src="js/three.min.js"></script>
   <script src="js/DeviceOrientationControls.js"></script>
   <script src="js/OrbitControls.js"></script>
-  <script src="js/stats.min.js"></script>
   <script src="js/sockets.utils.js"></script>
   <script src="js/geometry/ShapeDisplay.js"></script>
   <script src="js/geometry/Box.js"></script>
@@ -64,11 +63,12 @@ return function () {
     var element, container;
 
     var clock = new THREE.Clock();
-    var stats;
     var controlVars;
 
     var mapImageContext;
     var xForm;
+
+    var running = false;
 
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
@@ -173,14 +173,10 @@ return function () {
         xForm = new ShapeDisplay(24, 24, 12, scene);
         //xForm.setPosition(0, 0);
 
-        // Peripheral stuff: stats, control GUI
+        // Peripheral stuff
         //----------------------------------------------------------------------
         window.addEventListener('resize', resize, false);
         setTimeout(resize, 1);
-
-        // create the stats
-        stats = createStats();
-        document.body.appendChild(stats.domElement);
     }
 
     // Helpful Helper Functions
@@ -205,17 +201,6 @@ return function () {
         }
     }
 
-    function createStats() {
-        var stats = new Stats();
-        stats.setMode(0);
-
-        stats.domElement.style.position = 'absolute';
-        stats.domElement.style.left = '0px';
-        stats.domElement.style.top = '0px';
-
-        return stats;
-    }
-
     function resize() {
       var width = container.offsetWidth;
       var height = container.offsetHeight;
@@ -235,9 +220,8 @@ return function () {
       camera.updateProjectionMatrix();
 
       controls.update(dt);
-      stats.update();
 
-      if (hack % 3 == 0)
+      if (running && hack % 3 == 0)
         socket.send("P"+xForm.getHeightsMsgForPhysical());
       hack++;
     }
@@ -256,6 +240,7 @@ return function () {
       }
       catch (err) {
         console.log(err.toString());
+        running = false;
       }
       render(clock.getDelta());
     }
@@ -315,6 +300,7 @@ return function () {
       try {
         var userCode = new Function('"use strict";\n' + editor.getValue());
         executedCode = userCode();
+        running = true;
       }
       catch (err) {
         console.log(err.toString());

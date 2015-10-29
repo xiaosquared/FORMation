@@ -2,25 +2,28 @@
 ***PONG!***
 */
 //global vars and controls here
-var paddle = xForm.makeBox(0, 0, 3, 1, 0.2);
+var paddle = xForm.makeBox(0, 0, 5, 1, 0.7);
 var leftBound = 0;
 var rightBound = xForm.xWidth;
 var paddleSpeed = 0.2;
 paddle.draw();
 
-var playerPaddle = xForm.makeBox(10, 23, 3, 1, 0.2);
+var playerPaddle = xForm.makeBox(10, 23, 5, 1, 0.7);
 var playerPaddleSpeed = 0.2;
 playerPaddle.draw();
 
-var bullet = xForm.makeBox(12, 20, 1, 1, 0.1);
+var bullet = xForm.makeBox(12, 15, 5, 5, 0.4);
+bullet.makeHollow();
 var bulletXSpeed = 0.08;
 var bulletYSpeed = -0.1;
 
 window.addEventListener('keydown', function(e) {
   switch(e.keyCode) {
+    case 100:
     case 37:
     	playerPaddleSpeed = -0.2;
     break;
+    case 102:
     case 39:
         playerPaddleSpeed = 0.2;
     break;
@@ -57,7 +60,7 @@ return function () {
     bullet.x = 12.5;
   }
   //bullet collision
-  if ((bullet.collides(paddle) && bulletYSpeed < 0) || (bullet.collides(playerPaddle) && bulletYSpeed > 0)) {
+  if (((bullet.y - 1 <= paddle.y + paddle.yWidth) && (bullet.x >= paddle.x && bullet.x <= paddle.x + paddle.xWidth) && bulletYSpeed < 0) || ((bullet.y + bullet.yWidth >= playerPaddle.y) && (bullet.x >= playerPaddle.x && bullet.x <= playerPaddle.x + paddle.xWidth) && bulletYSpeed > 0)) {
     bulletYSpeed = -bulletYSpeed;
     if (Math.abs(bulletYSpeed < 0.2)) {
       if (bulletYSpeed < 0) {
