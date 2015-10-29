@@ -93,7 +93,7 @@
         scene.add(lightScene);
         
         var lightScene2 = new THREE.PointLight(0x606060, 2, 100);
-        lightScene2.position.set(60, 10, -30);
+        lightScene2.position.set(0, 30, -30);
         scene.add(lightScene2);
 
         var floorTexture = THREE.ImageUtils.loadTexture('textures/wood.jpg');
@@ -150,6 +150,8 @@
           }
       }
 
+
+
       function animate() {
         requestAnimationFrame(animate);
 
@@ -183,6 +185,7 @@
           normalizedPhase += speed;
           var phase = 2 * Math.PI * normalizedPhase;
 
+          /*
           for (var x = 0; x < shapeDisplay.xWidth; x++) {
              for (var y = 0; y < shapeDisplay.yWidth; y++) {
                   var d = sqrt[x*30 + y];
@@ -191,6 +194,34 @@
                   shapeDisplay.setPinHeight(x, y, heightScalar * height + heightOffset);
              }
          }
+         */
+          arr=newArray();
+          arr[10][10]=5;
+          arr[10][20]=3;
+          setShapeByArray(arr);
+      }
+
+      function newArray(){
+          var arr=[];
+          for (var i = 0; i < 30 ; i++) {
+              arr[i]=[];
+          }
+
+          for (var x = 0; x < 30 ; x++) {
+              for (var y = 0; y < 30; y++){
+                  arr[x][y] = 0;
+              }
+          }
+          return arr;
+      }
+
+      function setShapeByArray(arr) {
+        height=1;
+        for (var x = 0; x < 30 ; x++) {
+            for (var y = 0; y < 30; y++){
+                shapeDisplay.setPinHeight(x, y, arr[x][y]);
+            }
+        }
       }
 
       function fullscreen() {
