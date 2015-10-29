@@ -42,6 +42,13 @@
 
       var shapeDisplay;
 
+      var shape1 = [];
+      var shape2 = [];
+      var sec;
+      var dHeightPerSec=[];
+      var period=10;
+      var cnt=0;
+
       init();
 
       function init() {
@@ -120,6 +127,16 @@
 
         clock = new THREE.Clock();
 
+        shape1=new2DArray();
+        shape2=new2DArray();
+        for (var i = 10; i < 21; i++)
+            shape1[10][i]=(i-10)/3;
+        //shape1[10][10]=1;
+        for (var i = 10; i < 21; i++)
+            shape2[10][30-i]=(i-10)/3;
+        //shape2[10][10]=5;
+        initMotionFromShape(shape1,shape2);
+
         animate();
       }
 
@@ -155,7 +172,9 @@
       function animate() {
         requestAnimationFrame(animate);
 
-        updateDisplay();
+        //updateDisplay();
+
+        updateMotionFromShape(shape1,shape2);
         update(clock.getDelta());
         effect.render(scene, camera);
       }
@@ -179,29 +198,33 @@
       }
 
       function updateDisplay() {
-          var time = Date.now();
+
+          // Didn't use this
           var frequency = 0.5;
 
           normalizedPhase += speed;
           var phase = 2 * Math.PI * normalizedPhase;
 
-          /*
-          for (var x = 0; x < shapeDisplay.xWidth; x++) {
+          
+          /*for (var x = 0; x < shapeDisplay.xWidth; x++) {
              for (var y = 0; y < shapeDisplay.yWidth; y++) {
                   var d = sqrt[x*30 + y];
                   distance = distanceScalar * d + distanceOffset;
                   var height = Math.sin(distance - phase) / distance;
                   shapeDisplay.setPinHeight(x, y, heightScalar * height + heightOffset);
              }
-         }
-         */
-          arr=newArray();
-          arr[10][10]=5;
+         }*/
+         
+          arr=new2DArray();
+          arr[0][0]=5;
           arr[10][20]=3;
-          setShapeByArray(arr);
+          //setShapeByArray(arr);
       }
 
-      function newArray(){
+      function new2DArray(){
+
+          // Create and init 2D array
+
           var arr=[];
           for (var i = 0; i < 30 ; i++) {
               arr[i]=[];
@@ -216,12 +239,72 @@
       }
 
       function setShapeByArray(arr) {
-        height=1;
+
+        // Set shape of Formation by using array of height of each pin
+        
         for (var x = 0; x < 30 ; x++) {
-            for (var y = 0; y < 30; y++){
+            for (var y = 0; y < 30; y++) {
                 shapeDisplay.setPinHeight(x, y, arr[x][y]);
             }
         }
+      }
+
+      function initMotionFromShape(s1, s2) {
+
+          // Set high change for each time step
+
+          setShapeByArray(s1);
+          dHeightPerSec=new2DArray();
+          for (var x = 0; x < 30 ; x++) {
+              for (var y = 0; y < 30; y++) {
+                  dHeightPerSec[x][y] = (Number(s2[x][y])-Number(s1[x][y]))/Number(period);
+              }
+          }
+      }
+
+      function updateMotionFromShape(s1, s2) {
+
+          // USE this instead of updateDisplay
+
+          // Condition of each update will be per sec
+          var time = new Date();
+
+          if(cnt==0){
+              sec=time.getSeconds();
+          }
+
+          sec2=time.getSeconds();
+
+          // Condition to update every second not milli
+          if(Number(sec)==Number(sec2)&&cnt!=0) {
+              return ;
+          }
+
+          sec = sec2;
+          if(cnt==period) // finish task from changing from shape 1 to 2
+              return;
+
+          // Update new shape with s3 array
+          var s3 = [];
+          s3=new2DArray();
+          for (var x = 0; x < 30 ; x++) {
+              for (var y = 0; y < 30; y++) {
+                  s3[x][y] = shapeDisplay.getPinHeight(x,y)-10+dHeightPerSec[x][y];
+              }
+          }
+          console.log(s3[10][10])
+          setShapeByArray( s3 );
+
+          // Count the step of update
+          cnt++;
+
+          // Set current shape
+          for (var x = 0; x < 30 ; x++) {
+              for (var y = 0; y < 30; y++) {
+                  shape1[x][y] = shapeDisplay.getPinHeight(x,y);
+              }
+          }
+
       }
 
       function fullscreen() {
