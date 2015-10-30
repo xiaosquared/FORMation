@@ -55,9 +55,16 @@ Box.prototype.changePos = function(deltaX, deltaY) {
 	this.y += deltaY;
 }
 
-/*
+
 Box.prototype.collides = function(otherBox) {
   if (!otherBox.visible) return false;
-  //return (Math.abs(~~this.x - ~~otherBox.x) * 2 <= ~~(this.xWidth + otherBox.xWidth) && Math.abs(~~this.y - ~~otherBox.y) * 2 <= ~~(this.yWidth + otherBox.yWidth));
-  return (otherBox.y <= this.y  && this.y <= otherBox.y + otherBox.yWidth) || (otherBox.y <= this.y + this.yWidth && this.y + this.yWidth <= otherBox.y + otherBox.yWidth);
-}*/
+  ty1 = ~~(this.y);
+  ty2 = ~~(this.y + this.yWidth);
+  oy1 = ~~(otherBox.y);
+  oy2 = ~~(otherBox.y + otherBox.yWidth);
+  tx1 = ~~(this.x);
+  tx2 = ~~(this.x + this.xWidth);
+  ox1 = ~~(otherBox.x);
+  ox2 = ~~(otherBox.x + otherBox.xWidth);
+  return (((ox1 <= tx1 && tx1 <= ox2) || (ox1 <= tx2 && tx2 <= ox2)) && ((oy1 <= ty1 && ty1 <= oy2) || (oy1 <= ty2 && ty2 <= oy2)));
+}

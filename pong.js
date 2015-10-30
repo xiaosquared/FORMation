@@ -60,7 +60,7 @@ return function () {
     bullet.x = 12.5;
   }
   //bullet collision
-  if (((bullet.y - 1 <= paddle.y + paddle.yWidth) && (bullet.x >= paddle.x && bullet.x <= paddle.x + paddle.xWidth) && bulletYSpeed < 0) || ((bullet.y + bullet.yWidth >= playerPaddle.y) && (bullet.x >= playerPaddle.x && bullet.x <= playerPaddle.x + paddle.xWidth) && bulletYSpeed > 0)) {
+  if ((bullet.collides(paddle) && bulletYSpeed < 0) || (bullet.collides(playerPaddle) && bulletYSpeed > 0)) {
     bulletYSpeed = -bulletYSpeed;
     if (Math.abs(bulletYSpeed < 0.2)) {
       if (bulletYSpeed < 0) {
