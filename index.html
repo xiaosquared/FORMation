@@ -70,6 +70,7 @@ return function () {
     var xForm;
 
     var running = false;
+    var pause = false;
 
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
@@ -235,14 +236,17 @@ return function () {
       requestAnimationFrame(animate);
 
       update(clock.getDelta());
-
-      try {
-        this.code();
+      
+      if (!pause) {
+        try {
+          this.code();
+        }
+        catch (err) {
+          console.log(err.toString());
+          running = false;
+        }
       }
-      catch (err) {
-        console.log(err.toString());
-        running = false;
-      }
+      
       render(clock.getDelta());
     }
 
@@ -266,6 +270,19 @@ return function () {
         if (codingWindowVisible === 'none') {
             console.log(e.keyCode);
             switch(e.keyCode) {
+                case 68:
+                    this.code = function() {};
+                    xForm.clearDisplay();
+                    running = false;
+                case 32:
+                    if (pause) {
+                      running = true;
+                      pause = false;
+                    }
+                    else {
+                      pause = true;
+                      running = false;
+                    }
                 case 37:
                     windowX += 1;
                 break;
@@ -302,6 +319,7 @@ return function () {
         var userCode = new Function('"use strict";\n' + editor.getValue());
         executedCode = userCode();
         running = true;
+        pause = false;
       }
       catch (err) {
         console.log(err.toString());
