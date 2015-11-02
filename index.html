@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Cardboard Example</title>
+    <title>FORMation</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -19,49 +19,69 @@
         bottom: 0;
       }
       #editor {
-        position: absolute;
+        position:absolute;
         top: 0;
         bottom: 0;
         left: 0;
         right: 0;
         opacity: 0.75;
         z-index: 20;
-    }
+        }
     </style>
   </head>
   <body>
     <div id="example"></div>
     <div id="editor">//add global variables here:
 var i = 0;
-
+xForm.setPinHeight(0, 0, 1);
+xForm.setPinHeight(0, 23, 1);
 //this function will be executed with each frame
 return function () {
   i += 0.075;
 
   for (var j = 0; j < 24; j++) {
     for (var k = 0; k < 24; k++) {
-      xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)) * 0.5);
+      xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)));
     }
   }
-};</div>
-    <div style="display:none">
-        <canvas id="mapCopyCanvas" width="812" height="400"></canvas>
+};
     </div>
-  <script src="js/three.min.js"></script>
-  <script src="js/DeviceOrientationControls.js"></script>
-  <script src="js/OrbitControls.js"></script>
-  <script src="js/sockets.utils.js"></script>
-  <script src="js/geometry/ShapeDisplay.js"></script>
-  <script src="js/geometry/Box.js"></script>
-  <script src="js/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script type="x-shader/x-vertex" id="vertexShader">
+        varying vec3 vWorldPosition;
+        void main() {
+            vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
-  <script>
+        }
+    </script>
+    <script type="x-shader/x-fragment" id="fragmentShader">
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+            float h = normalize(vWorldPosition + offset).y;
+            gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+    </script>
+    <script src="js/three.min.js"></script>
+    <script src="js/TrackballControls.js"></script>
+    <script src="js/sockets.utils.js"></script>
+    <script src="js/geometry/ShapeDisplay.js"></script>
+    <script src="js/geometry/Box.js"></script>
+    <script src="js/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
 
     var socket; // handles messages with shape display
 
+    var fps = 24;
     var camera, scene, renderer;
-    var controls;
+    var trackballControls;
     var element, container;
+
 
     var clock = new THREE.Clock();
     var controlVars;
@@ -101,65 +121,64 @@ return function () {
 
         scene = new THREE.Scene();
 
-        camera = new THREE.PerspectiveCamera(90, 1, 0.001, 700);
-        camera.position.set(0, 20, 0);
+        camera = new THREE.PerspectiveCamera(90, 1, 0.001, 5000);
+        camera.rotation.y = -Math.PI/2;
+        camera.position.set(-10, 31, 0);
         //for extended table
         //camera.position.set(-20, 20, 0);
         scene.add(camera);
 
-
-        //Setup Controls to look around
+        // Controls
         //----------------------------------------------------------------------
-        controls = new THREE.OrbitControls(camera, element);
-        controls.rotateUp(Math.PI / 4);
-        controls.target.set(
-            camera.position.x + 0.1,
-            camera.position.y,
-            camera.position.z
-        );
-        controls.noZoom = true;
-        controls.noPan = true;
-
-        function setOrientationControls(e) {
-            if (!e.alpha) {
-                return;
-            }
-            controls = new THREE.DeviceOrientationControls(camera, true);
-            controls.connect();
-            controls.update();
-
-            element.addEventListener('click', fullscreen, false);
-
-            window.removeEventListener('deviceorientation', setOrientationControls, true);
-        }
-        window.addEventListener('deviceorientation', setOrientationControls, true);
-
+        // trackballControls = new THREE.TrackballControls(camera);
+        // trackballControls.rotateSpeed = 1.0;
+        // trackballControls.zoomSpeed = 1.0;
+        // trackballControls.panSpeed = 1.0;
 
         // Lights
         //----------------------------------------------------------------------
-        var hemiLight = new THREE.HemisphereLight( 0xffffff, 0x666666, 0.6 );
-        hemiLight.position.copy(new THREE.Vector3(0, 500, 0));
+        var hemiLight = new THREE.HemisphereLight( 0x999999, 0xffffff, 1);
+        hemiLight.position.y = 500;
         scene.add(hemiLight);
-
 
         var directionalLight = new THREE.DirectionalLight();
         directionalLight.position.copy(new THREE.Vector3(-5000, 30, 0));
         scene.add(directionalLight);
 
+        // Mighty Skydome
+        // //----------------------------------------------------------------------
+        var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+        var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+        var uniforms = {
+            topColor: 	 { type: "c", value: new THREE.Color( 0x000000 ) },
+            bottomColor: { type: "c", value: new THREE.Color( 0x000000 ) },
+            offset:		 { type: "f", value: 400 },
+            exponent:	 { type: "f", value: 0.6 }
+        };
+        uniforms.topColor.value.copy( hemiLight.color );
+
+        var skyGeo = new THREE.SphereGeometry( 1000, 32, 15 );
+        var skyMat = new THREE.ShaderMaterial( {
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide
+        } );
+
+        var sky = new THREE.Mesh( skyGeo, skyMat );
+        scene.add( sky );
 
         // Floor
         //----------------------------------------------------------------------
-        var texture = THREE.ImageUtils.loadTexture(
-            'textures/grid.png'
-        );
+        var texture = THREE.ImageUtils.loadTexture('textures/grid.png');
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat = new THREE.Vector2(50, 50);
+        texture.repeat = new THREE.Vector2(20, 20);
         texture.anisotropy = renderer.getMaxAnisotropy();
 
         var material = new THREE.MeshPhongMaterial({
-            color: 0x222222,
-            specular: 0xffffff,
+            color: 0xffffff,
+            specular: 0x333333,
             shininess: 20,
             shading: THREE.FlatShading,
             map: texture
@@ -167,12 +186,14 @@ return function () {
 
         var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
         var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = -40;
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
         // Shape Display!!
         //----------------------------------------------------------------------
-        xForm = new ShapeDisplay(24, 24, 12, scene);
+        xForm = new ShapeDisplay(24, 24, 13.25, scene);
+        xForm.container.position.x = 40;
         //xForm.setPosition(0, 0);
 
         // Peripheral stuff
@@ -181,7 +202,7 @@ return function () {
         setTimeout(resize, 1);
     }
 
-    // Helpful Helper Functions
+    // Helper Functions
     //--------------------------------------------------------------------------
     function setupSocket() {
         console.log('Setup Socket');
@@ -215,39 +236,37 @@ return function () {
 
     // Rendering!
     //--------------------------------------------------------------------------
-    var hack = 0;
     function update(dt) {
       resize();
 
       camera.updateProjectionMatrix();
+      //trackballControls.update(dt);
 
-      controls.update(dt);
-
-      if (running && hack % 3 == 0)
-        socket.send("P"+xForm.getHeightsMsgForPhysical());
-      hack++;
-    }
-
-    function render(dt) {
-      renderer.render(scene, camera);
+      if (running) {
+          msg = xForm.getHeightsMsgForPhysical();
+          if (msg.length > 0) {
+            socket.send("P"+msg);
+          }
+      }
     }
 
     function animate(t) {
-      requestAnimationFrame(animate);
+        setTimeout(function() {
+            requestAnimationFrame(animate);
 
-      update(clock.getDelta());
-      
-      if (!pause) {
-        try {
-          this.code();
-        }
-        catch (err) {
-          console.log(err.toString());
-          running = false;
-        }
-      }
-      
-      render(clock.getDelta());
+            if (!pause) {
+                try {
+                    this.code();
+                }
+                catch (err) {
+                    console.log(err.toString());
+                    running = false;
+                }
+            }
+            update(clock.getDelta());
+            renderer.render(scene, camera);
+
+        }, 1000 / fps);
     }
 
     function fullscreen() {
@@ -312,7 +331,6 @@ return function () {
 
     this.code = function() {};
     this.changeCode = function() {
-      console.log("changing");
       xForm.clearDisplay();
       var _executedCode;
       try {
