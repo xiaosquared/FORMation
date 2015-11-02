@@ -21,7 +21,7 @@ Box.prototype.draw = function() {
         }
         else {
             var distFromBorder = Math.min(i,(this.xWidth - 1 - i), j, (this.yWidth - 1 - j));
-            this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height - distFromBorder * 0.1);
+            this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height - (distFromBorder + 1) * 0.1);
         }
       }
     }
@@ -56,8 +56,11 @@ Box.prototype.changePos = function(deltaX, deltaY) {
 }
 
 
-Box.prototype.collides = function(otherBox) {
+Box.prototype.collides = function(otherBox, yExtra) {
   if (!otherBox.visible) return false;
+  if (!yExtra) {
+      yExtra = 0;
+  }
   ty1 = ~~(this.y);
   ty2 = ~~(this.y + this.yWidth);
   oy1 = ~~(otherBox.y);
@@ -66,5 +69,5 @@ Box.prototype.collides = function(otherBox) {
   tx2 = ~~(this.x + this.xWidth);
   ox1 = ~~(otherBox.x);
   ox2 = ~~(otherBox.x + otherBox.xWidth);
-  return (((ox1 <= tx1 && tx1 <= ox2) || (ox1 <= tx2 && tx2 <= ox2)) && ((oy1 <= ty1 && ty1 <= oy2) || (oy1 <= ty2 && ty2 <= oy2)));
+  return (((ox1 <= tx1 && tx1 <= ox2) || (ox1 <= tx2 && tx2 <= ox2)) && ((oy1 <= (ty1 + yExtra) && (ty1 + yExtra) <= oy2) || (oy1 <= (ty2 + yExtra) && (ty2 + yExtra) <= oy2)));
 }

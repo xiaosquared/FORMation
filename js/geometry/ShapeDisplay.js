@@ -153,10 +153,13 @@ ShapeDisplay.prototype.getLastPinHeight = function(x, y, height) {
 
 //new stuff
 
-ShapeDisplay.prototype.clearDisplay = function() {
+ShapeDisplay.prototype.clearDisplay = function(height) {
+    if (!height) {
+        height = 0;
+    }
     for (var i = 0; i < this.xWidth; i++) {
       for (var j = 0; j < this.yWidth; j++) {
-        this.setPinHeight(i, j, 0);
+        this.setPinHeight(i, j, height);
       }
     }
 }
