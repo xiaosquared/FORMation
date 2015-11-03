@@ -1,8 +1,8 @@
-function Box(x, y, xWidth, yWidth, height, shapeDisplay) {
+function Box(x, y, x_size, y_size, height, shapeDisplay) {
     this.x = x;
     this.y = y;
-    this.xWidth = xWidth;
-    this.yWidth = yWidth;
+    this.x_size = x_size;
+    this.y_size = y_size;
     this.height = height;
     this.shapeDisplay = shapeDisplay;
     this.visible = true;
@@ -14,13 +14,13 @@ Box.prototype.makeHollow = function() {
 }
 
 Box.prototype.draw = function() {
-    for (var i = 0; i < this.xWidth; i++) {
-      for (var j = 0; j < this.yWidth; j++) {
+    for (var i = 0; i < this.x_size; i++) {
+      for (var j = 0; j < this.y_size; j++) {
         if (!this.hollow) {
             this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height);
         }
         else {
-            var distFromBorder = Math.min(i,(this.xWidth - 1 - i), j, (this.yWidth - 1 - j));
+            var distFromBorder = Math.min(i,(this.x_size - 1 - i), j, (this.y_size - 1 - j));
             this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height - (distFromBorder + 1) * 0.1);
         }
       }
@@ -28,8 +28,8 @@ Box.prototype.draw = function() {
 }
 
 Box.prototype.erase = function() {
-	for (var i = 0; i < this.xWidth; i++) {
-      for (var j = 0; j < this.yWidth; j++) {
+	for (var i = 0; i < this.x_size; i++) {
+      for (var j = 0; j < this.y_size; j++) {
       	this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), 0);
       }
     }
@@ -62,12 +62,12 @@ Box.prototype.collides = function(otherBox, yExtra) {
       yExtra = 0;
   }
   ty1 = ~~(this.y);
-  ty2 = ~~(this.y + this.yWidth);
+  ty2 = ~~(this.y + this.y_size);
   oy1 = ~~(otherBox.y);
-  oy2 = ~~(otherBox.y + otherBox.yWidth);
+  oy2 = ~~(otherBox.y + otherBox.y_size);
   tx1 = ~~(this.x);
-  tx2 = ~~(this.x + this.xWidth);
+  tx2 = ~~(this.x + this.x_size);
   ox1 = ~~(otherBox.x);
-  ox2 = ~~(otherBox.x + otherBox.xWidth);
+  ox2 = ~~(otherBox.x + otherBox.x_size);
   return (((ox1 <= tx1 && tx1 <= ox2) || (ox1 <= tx2 && tx2 <= ox2)) && ((oy1 <= (ty1 + yExtra) && (ty1 + yExtra) <= oy2) || (oy1 <= (ty2 + yExtra) && (ty2 + yExtra) <= oy2)));
 }
