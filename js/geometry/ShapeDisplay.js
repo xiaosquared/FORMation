@@ -147,15 +147,18 @@ ShapeDisplay.prototype.setPinMaterial = function(x, y, material) {
 
 //new stuff
 
-ShapeDisplay.prototype.clearDisplay = function(height) {
-    if (!height) {
-        height = 0;
+ShapeDisplay.prototype.clearDisplay = function(h) {
+    if (!h) {
+        h = 0;
     }
     for (var i = 0; i < this.x_size; i++) {
       for (var j = 0; j < this.y_size; j++) {
-        this.setPinHeight(i, j, height);
+        this.setPinHeight(i, j, h);
       }
     }
+}
+ShapeDisplay.prototype.clearDisplayFromPhysical = function(h) {
+    this.clearDisplay(h/255);
 }
 
 ShapeDisplay.prototype.makeBox = function(x, y, x_size, y_size, height) {
@@ -202,11 +205,14 @@ Transform.prototype.getHeightsMsgForPhysical = function() {
         return prev + "-" + currentMsg;
     }, "");
 }
-Transform.prototype.clearDisplay = function(height) {
-    return this.shapeDisplays.map(function(display) {
-        display.clearDisplay(height);
+Transform.prototype.clearDisplay = function(h) {
+    this.shapeDisplays.map(function(display) {
+        display.clearDisplay(h);
     });
 }
-Transform.prototype.makeBox = function(x, y, x_size, y_size, height) {
-    return new Box(x, y, x_size, y_size, height, this);
+Transform.prototype.clearDisplayFromPhysical = function(h) {
+    this.clearDisplay(h/255);
+}
+Transform.prototype.makeBox = function(x, y, x_size, y_size, h) {
+    return new Box(x, y, x_size, y_size, h, this);
 }

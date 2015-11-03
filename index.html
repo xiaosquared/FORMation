@@ -39,8 +39,8 @@ xForm.setPinHeight(0, 23, 1);
 return function () {
   i += 0.075;
 
-  for (var j = 0; j < 24; j++) {
-    for (var k = 0; k < 24; k++) {
+  for (var j = 0; j < xForm.x_size; j++) {
+    for (var k = 0; k < xForm.y_size; k++) {
       xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)));
     }
   }
@@ -68,6 +68,7 @@ return function () {
     </script>
     <script src="js/three.min.js"></script>
     <script src="js/TrackballControls.js"></script>
+    <script src="js/dat.gui.min.js"></script>
     <script src="js/sockets.utils.js"></script>
     <script src="js/geometry/ShapeDisplay.js"></script>
     <script src="js/geometry/Box.js"></script>
@@ -199,6 +200,14 @@ return function () {
         //----------------------------------------------------------------------
         window.addEventListener('resize', resize, false);
         setTimeout(resize, 1);
+
+        // control variables
+        // control variables
+        controlVars = new function () {
+            this.sendToPhysical = false;
+        };
+        var gui = new dat.GUI();
+        gui.add(controlVars, 'sendToPhysical', false);
     }
 
     // Helper Functions
@@ -241,7 +250,7 @@ return function () {
       camera.updateProjectionMatrix();
       //trackballControls.update(dt);
 
-      if (running) {
+      if (running && controlVars.sendToPhysical) {
           msg = xForm.getHeightsMsgForPhysical();
           if (msg.length > 0) {
             socket.send("P"+msg);
