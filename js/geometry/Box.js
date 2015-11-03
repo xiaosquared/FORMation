@@ -9,8 +9,11 @@ function Box(x, y, x_size, y_size, height, shapeDisplay) {
     this.hollow = false;
 }
 
-Box.prototype.makeHollow = function() {
-    this.hollow = true;
+Box.prototype.makeHollow = function(hollow) {
+    if (!hollow)
+        this.hollow = true;
+    else
+        this.hollow = hollow;
 }
 
 Box.prototype.draw = function() {
@@ -27,7 +30,8 @@ Box.prototype.draw = function() {
     }
 }
 
-Box.prototype.erase = function() {
+Box.prototype.erase = function(h) {
+    h = h ? h : 0;
 	for (var i = 0; i < this.x_size; i++) {
       for (var j = 0; j < this.y_size; j++) {
       	this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), 0);
@@ -35,11 +39,12 @@ Box.prototype.erase = function() {
     }
 }
 
-Box.prototype.destroy = function() {
-  if (this.visible) {
-    this.erase();
-    this.visible = false;
-  }
+Box.prototype.destroy = function(h) {
+    h = h ? h : 0;
+    if (this.visible) {
+        this.erase();
+        this.visible = false;
+    }
 }
 
 Box.prototype.move = function(moveX, moveY) {
