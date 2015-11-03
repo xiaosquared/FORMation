@@ -4,7 +4,7 @@
 //global vars and controls here
 var paddle = xForm.makeBox(0, 0, 5, 1, 1.0);
 var leftBound = 0;
-var rightBound = xForm.xWidth;
+var rightBound = xForm.x_size;
 var paddleSpeed = 0.2;
 paddle.draw();
 
@@ -37,26 +37,26 @@ return function () {
   if (paddle.x <= bullet.x) {
     paddleSpeed = Math.random() * 0.1 + 0.08;
   }
-  else if (paddle.x + paddle.xWidth >= bullet.x + bullet.xWidth) {
+  else if (paddle.x + paddle.x_size >= bullet.x + bullet.x_size) {
     paddleSpeed = Math.random() * -0.1 - 0.08;
   }
   else {
     paddleSpeed = 0;
   }
   //keep player paddle in bounds
-  if (playerPaddle.x > rightBound - playerPaddle.xWidth) {
+  if (playerPaddle.x > rightBound - playerPaddle.x_size) {
     playerPaddleSpeed = 0;
-    playerPaddle.x = rightBound - playerPaddle.xWidth;
+    playerPaddle.x = rightBound - playerPaddle.x_size;
   }
   if (playerPaddle.x < leftBound) {
     playerPaddleSpeed = 0;
     playerPaddle.x = leftBound
   }
   //bounce bullet
-  if (bullet.x > rightBound-bullet.xWidth || bullet.x < leftBound) {
+  if (bullet.x > rightBound-bullet.x_size || bullet.x < leftBound) {
     bulletXSpeed = -bulletXSpeed;
   }
-  if (bullet.y > xForm.yWidth - bullet.yWidth + 1 || bullet.y < 1 - 1) {
+  if (bullet.y > xForm.y_size - bullet.y_size + 1 || bullet.y < 1 - 1) {
     bullet.destroy();
     bullet.x = 12.5;
   }
