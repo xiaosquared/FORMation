@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>FORMation</title>
+    <title>FORMation : CooperFORM </title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
@@ -31,10 +31,10 @@
   </head>
   <body>
     <div id="example"></div>
-    <div id="editor">//add global variables here:
+    <div id="editor">
+//add global variables here:
 var i = 0;
-xForm.setPinHeight(0, 0, 1);
-xForm.setPinHeight(0, 23, 1);
+
 //this function will be executed with each frame
 return function () {
   i += 0.075;
@@ -66,13 +66,12 @@ return function () {
             gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
         }
     </script>
-    <script src="js/three.min.js"></script>
-    <script src="js/TrackballControls.js"></script>
-    <script src="js/dat.gui.min.js"></script>
-    <script src="js/sockets.utils.js"></script>
-    <script src="js/geometry/ShapeDisplay.js"></script>
-    <script src="js/geometry/Box.js"></script>
-    <script src="js/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/3d/three.min.js"></script>
+    <script src="js/3d/ShapeDisplay.js"></script>
+    <script src="js/3d/Box.js"></script>
+    <script src="js/utils/dat.gui.min.js"></script>
+    <script src="js/utils/sockets.utils.js"></script>
+    <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 
     <script>
 
@@ -80,7 +79,6 @@ return function () {
 
     var fps = 30;
     var camera, scene, renderer;
-    var trackballControls;
     var element, container;
 
 
@@ -125,16 +123,12 @@ return function () {
         camera = new THREE.PerspectiveCamera(90, 1, 0.001, 5000);
         camera.rotation.y = -Math.PI/2;
         camera.position.set(-10, 31, 0);
-        //for extended table
-        //camera.position.set(-20, 20, 0);
         scene.add(camera);
 
-        // Controls
+        // Shape Display!!
         //----------------------------------------------------------------------
-        // trackballControls = new THREE.TrackballControls(camera);
-        // trackballControls.rotateSpeed = 1.0;
-        // trackballControls.zoomSpeed = 1.0;
-        // trackballControls.panSpeed = 1.0;
+        xForm = new ShapeDisplay(24, 24, 13.25, scene);
+        xForm.container.position.x = 40;
 
         // Lights
         //----------------------------------------------------------------------
@@ -191,11 +185,6 @@ return function () {
         mesh.rotation.x = -Math.PI / 2;
         scene.add(mesh);
 
-        // Shape Display!!
-        //----------------------------------------------------------------------
-        xForm = new Transform(13.25, scene);
-        xForm.container.position.x = 20;
-
         // Peripheral stuff
         //----------------------------------------------------------------------
         window.addEventListener('resize', resize, false);
@@ -248,7 +237,6 @@ return function () {
       resize();
 
       camera.updateProjectionMatrix();
-      //trackballControls.update(dt);
 
       if (running && controlVars.sendToPhysical) {
           msg = xForm.getHeightsMsgForPhysical();
