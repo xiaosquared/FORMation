@@ -7,14 +7,14 @@ It was conceived by [Xiao Xiao](https://github.com/xiaosquared) and [Donald Dere
 * [Dat.gui](https://code.google.com/p/dat-gui/)
 
 ## How to Run
-1. In a terminal:
+In a terminal:
 ``` 
 git clone https://github.com/xiaosquared/FORMation.git && cd FORMation
 python -m SimpleHTTPServer 8000
 ```
-2. In a browser, go to localhost:8000/cooperform.html or localhost:8000/cooperform.html
+In a browser, go to localhost:8000/cooperform.html or localhost:8000/cooperform.html
 
-3. Keyboard controls:
+Keyboard controls:
 * _Ctrm-m_: opens and closes the browser
 * _Enter_: run the current script
 * _Space_: pause
