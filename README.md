@@ -15,10 +15,12 @@ python -m SimpleHTTPServer 8000
 2. In a browser, go to localhost:8000/cooperform.html or localhost:8000/cooperform.html
 
 3. Keyboard controls:
-* Ctrm-m: opens and closes the browser
-* Enter: run the current script
-* Space: pause
-* d: clear
+* _Ctrm-m_: opens and closes the browser
+* _Enter_: run the current script
+* _Space_: pause
+* _d_: clear
+
+__For MAS.834 students__: FORMation has functionality to interface with the physical shape displays when its corresponding program is running on the shape display computers. Speak to Xiao Xiao if you would like to do that.
 
 ## Scripting the Shape Display
 
@@ -36,6 +38,9 @@ xForm.clearDisplay(h)
 ```
 
 ### Examples
-The /examples folder has some sample scripts. To run, paste the code into the FORMation editor.
+The /examples folder has some sample scripts. To run, paste the code into the FORMation editor. Current examples:
+* __pong.js:__ 
+  * A physical pong game where the shape display moves around a real ball, with paddles controlled via the keyboard. 
+  * Example of how to use Box feature to render boxes and detect collision between them
 
 
