@@ -7,6 +7,13 @@ It was conceived by [Xiao Xiao](https://github.com/xiaosquared) and [Donald Dere
 * [Dat.gui](https://code.google.com/p/dat-gui/)
 
 ## How to Run
+
+Live versions of the program:
+* [CooperForm] (http://xiaosquared.com/formation/cooperform.html) (24 x 24)
+* [TransForm] (http://xiaosquared.com/formation/transform.html) (3 islands of 16 x 24)
+
+If you want to play with the underlying javascript, clone the repo and host it as your own local webserver.
+
 In a terminal:
 ``` 
 git clone https://github.com/xiaosquared/FORMation.git && cd FORMation
