@@ -31,7 +31,7 @@ Box.prototype.draw = function() {
 }
 
 Box.prototype.erase = function(h) {
-    h = h ? h : 0;
+  h = h ? h : 0;
 	for (var i = 0; i < this.x_size; i++) {
       for (var j = 0; j < this.y_size; j++) {
       	this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), 0);
@@ -42,7 +42,7 @@ Box.prototype.erase = function(h) {
 Box.prototype.destroy = function(h) {
     h = h ? h : 0;
     if (this.visible) {
-        this.erase();
+        this.erase(h);
         this.visible = false;
     }
 }

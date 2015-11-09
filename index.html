@@ -89,7 +89,7 @@ return function () {
     var mapImageContext;
     var xForm;
 
-    var pause = false;
+    var pause = true;
 
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
@@ -191,7 +191,7 @@ return function () {
 
         // Shape Display!!
         //----------------------------------------------------------------------
-        xForm = new ShapeDisplay(24, 24, 13.25, scene);
+        xForm = new ShapeDisplay(24, 24, 13.25, scene, camera);
         xForm.container.position.x = 40;
         //xForm.setPosition(0, 0);
 
@@ -206,6 +206,24 @@ return function () {
         };
         var gui = new dat.GUI();
         gui.add(controlVars, 'sendToPhysical', false);
+    }
+
+    // touch handling
+    document.addEventListener('mousedown', onDocumentMouseDown, false);
+    function onDocumentMouseDown( e ) {
+      e.preventDefault();
+      var mouseVector = new THREE.Vector3();
+      mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+      mouseVector.y = 1 - 2 * ( e.clientY / window.innerHeight );
+      var raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouseVector.clone(), camera);
+      var intersects = raycaster.intersectObjects(xForm.pins);
+      console.log(intersects)
+      // change first elements color
+      var firstIntersect = intersects[1];
+      var firstObj = firstIntersect.object;
+      firstObj.material.color.setHex(0xff0000);
+      firstObj.touched = true;
     }
 
     // Helper Functions
@@ -263,6 +281,7 @@ return function () {
             if (!pause) {
                 try {
                     this.code();
+                    xForm.clearDisplayTouches();
                 }
                 catch (err) {
                     console.log(err.toString());
