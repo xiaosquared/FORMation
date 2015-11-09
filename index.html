@@ -99,7 +99,7 @@ return function () {
     //make control+m hide the editor
     editor.commands.addCommand({
         name: 'hideEditor',
-        bindKey: 'Ctrl-M',
+        bindKey: {win: 'Ctrl-M',  mac: 'Command-M'},
         exec: function(editor) {
             document.getElementById('editor').style.display = 'none';
         }
@@ -314,8 +314,9 @@ return function () {
                 case 13:
                   this.changeCode();
                 break;
-                // if 'ctrl+M' is pressed, show editor
+                // if 'ctrl+M' or 'command+M' is pressed, show editor
                 case 77:
+                case 91:
                   if (e.ctrlKey) {
                     document.getElementById('editor').style.display = 'block';
                     editor.focus();
