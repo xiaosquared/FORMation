@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>FORMation : CooperFORM </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+        margin: 0px;
+        background: 0x000000;
+        overflow: hidden;
+      }
+      #example {
+        background:0x000000;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      #editor {
+        position:absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        opacity: 0.75;
+        z-index: 20;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="example"></div>
+    <div id="editor">
+//add global variables here:
+var i = 0;
+
+//this function will be executed with each frame
+return function () {
+  i += 0.075;
+
+  for (var j = 0; j < xForm.x_size; j++) {
+    for (var k = 0; k < xForm.y_size; k++) {
+      xForm.setPinHeight(j,k,(0.5 + 0.5 * Math.cos(i + j * 0.5)));
+    }
+  }
+};
+    </div>
+    <script type="x-shader/x-vertex" id="vertexShader">
+        varying vec3 vWorldPosition;
+        void main() {
+            vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+        }
+    </script>
+    <script type="x-shader/x-fragment" id="fragmentShader">
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+            float h = normalize(vWorldPosition + offset).y;
+            gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+    </script>
+    <script src="js/3d/three.min.js"></script>
+    <script src="js/3d/ShapeDisplay.js"></script>
+    <script src="js/3d/Box.js"></script>
+    <script src="js/utils/dat.gui.min.js"></script>
+    <script src="js/utils/sockets.utils.js"></script>
+    <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+
+    var socket; // handles messages with shape display
+
+    var fps = 30;
+    var camera, scene, renderer;
+    var element, container;
+
+
+    var clock = new THREE.Clock();
+    var controlVars;
+
+    var mapImageContext;
+    var xForm;
+
+    var running = false;
+    var pause = false;
+
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode("ace/mode/javascript");
+    editor.setOption("showPrintMargin", false);
+    editor.setOption("fontSize", 13);
+    //make control+m hide the editor
+    editor.commands.addCommand({
+        name: 'hideEditor',
+        bindKey: 'Ctrl-M',
+        exec: function(editor) {
+            document.getElementById('editor').style.display = 'none';
+        }
+    });
+
+    init();
+    animate();
+
+    function init() {
+        setupSocket();
+
+        // Basic elements of 3JS: Renderer, Scene, Camera
+        //----------------------------------------------------------------------
+        renderer = new THREE.WebGLRenderer();
+        element = renderer.domElement;
+        container = document.getElementById('example');
+        container.appendChild(element);
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(90, 1, 0.001, 5000);
+        camera.rotation.y = -Math.PI/2;
+        camera.position.set(-10, 31, 0);
+        scene.add(camera);
+
+        // Shape Display!!
+        //----------------------------------------------------------------------
+        xForm = new ShapeDisplay(24, 24, 13.25, scene);
+        xForm.container.position.x = 40;
+
+        // Lights
+        //----------------------------------------------------------------------
+        var hemiLight = new THREE.HemisphereLight( 0x999999, 0xffffff, 1);
+        hemiLight.position.y = 500;
+        scene.add(hemiLight);
+
+        var directionalLight = new THREE.DirectionalLight();
+        directionalLight.position.copy(new THREE.Vector3(-5000, 30, 0));
+        scene.add(directionalLight);
+
+        // Mighty Skydome
+        // //----------------------------------------------------------------------
+        var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+        var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+        var uniforms = {
+            topColor: 	 { type: "c", value: new THREE.Color( 0x000000 ) },
+            bottomColor: { type: "c", value: new THREE.Color( 0x000000 ) },
+            offset:		 { type: "f", value: 400 },
+            exponent:	 { type: "f", value: 0.6 }
+        };
+        uniforms.topColor.value.copy( hemiLight.color );
+
+        var skyGeo = new THREE.SphereGeometry( 1000, 32, 15 );
+        var skyMat = new THREE.ShaderMaterial( {
+            uniforms: uniforms,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            side: THREE.BackSide
+        } );
+
+        var sky = new THREE.Mesh( skyGeo, skyMat );
+        scene.add( sky );
+
+        // Floor
+        //----------------------------------------------------------------------
+        var texture = THREE.ImageUtils.loadTexture('textures/grid.png');
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat = new THREE.Vector2(20, 20);
+        texture.anisotropy = renderer.getMaxAnisotropy();
+
+        var material = new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            specular: 0x333333,
+            shininess: 20,
+            shading: THREE.FlatShading,
+            map: texture
+        });
+
+        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = -40;
+        mesh.rotation.x = -Math.PI / 2;
+        scene.add(mesh);
+
+        // Peripheral stuff
+        //----------------------------------------------------------------------
+        window.addEventListener('resize', resize, false);
+        setTimeout(resize, 1);
+
+        // control variables
+        // control variables
+        controlVars = new function () {
+            this.sendToPhysical = false;
+        };
+        var gui = new dat.GUI();
+        gui.add(controlVars, 'sendToPhysical', false);
+    }
+
+    // Helper Functions
+    //--------------------------------------------------------------------------
+    function setupSocket() {
+        console.log('Setup Socket');
+        socket = new WebSocket( get_appropriate_ws_url());
+
+        try {
+            socket.onopen = function() {
+                console.log("Websocket connection OPEN");
+            }
+            socket.onmessage = function got_packet(msg) {
+                console.log(msg);
+                //handleMsg(msg.data);
+            }
+            socket.onclose = function() {
+                console.log("websocket connection CLOSED");
+            }
+        } catch (exception) {
+            console.log("Something went wrong " + exception);
+        }
+    }
+
+    function resize() {
+      var width = container.offsetWidth;
+      var height = container.offsetHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height);
+    }
+
+    // Rendering!
+    //--------------------------------------------------------------------------
+    function update(dt) {
+      resize();
+
+      camera.updateProjectionMatrix();
+
+      if (running && controlVars.sendToPhysical) {
+          msg = xForm.getHeightsMsgForPhysical();
+          if (msg.length > 0) {
+            socket.send("P"+msg);
+          }
+      }
+    }
+
+    function animate(t) {
+        setTimeout(function() {
+            requestAnimationFrame(animate);
+
+            if (!pause) {
+                try {
+                    this.code();
+                }
+                catch (err) {
+                    console.log(err.toString());
+                    running = false;
+                }
+            }
+            update(clock.getDelta());
+            renderer.render(scene, camera);
+
+        }, 1000 / fps);
+    }
+
+    function fullscreen() {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if (container.msRequestFullscreen) {
+        container.msRequestFullscreen();
+      } else if (container.mozRequestFullScreen) {
+        container.mozRequestFullScreen();
+      } else if (container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen();
+      }
+    }
+
+    windowX = 0
+    windowY = 0
+    window.addEventListener('keydown', function(e) {
+        var codingWindowVisible = document.getElementById('editor').style.display;
+        //only move map if coding window not visible
+        if (codingWindowVisible === 'none') {
+            console.log(e.keyCode);
+            switch(e.keyCode) {
+                case 68:
+                    this.code = function() {};
+                    xForm.clearDisplay();
+                    running = false;
+                case 32:
+                    if (pause) {
+                      running = true;
+                      pause = false;
+                    }
+                    else {
+                      pause = true;
+                      running = false;
+                    }
+                case 37:
+                    windowX += 1;
+                break;
+                case 39:
+                    windowX -= 1;
+                break;
+                case 38:
+                    windowY += 1;
+                break;
+                case 40:
+                    windowY -= 1;
+                break;
+                //Enter runs the code
+                case 13:
+                  this.changeCode();
+                break;
+                //if Ctrl+M is pressed, show editor
+                case 77:
+                  if (e.ctrlKey) {
+                    document.getElementById('editor').style.display = 'block';
+                    editor.focus();
+                  }
+                break;
+            }
+        }
+    });
+
+    this.code = function() {};
+    this.changeCode = function() {
+      xForm.clearDisplay();
+      var _executedCode;
+      try {
+        var userCode = new Function('"use strict";\n' + editor.getValue());
+        executedCode = userCode();
+        running = true;
+        pause = false;
+      }
+      catch (err) {
+        console.log(err.toString());
+      }
+      if (executedCode) {
+        this.code = executedCode;
+      }
+    }
+
+  </script>
+  </body>
+</html>
