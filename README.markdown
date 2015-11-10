@@ -1,6 +1,4 @@
-## F L A T L A N D
-
-A boilerplate for VR experiments
+## FORMation
 
 ###Install && Start
 
