@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('VRS:server');
 var http = require('http');
+var osc = require('osc');
 
 /**
  * Get port from environment and store in Express.
@@ -78,42 +79,55 @@ function onError(error) {
   }
 }
 
-/**
- * Handle Socket.io events
- */
-//Storing control obj here [hack]
-var control;
-io.on('connection', function (socket) {
+/* OSC Integretaion over UDP
+*/
+var udpPortSend = new osc.UDPPort({
+    localAddress: "0.0.0.0",
+    localPort: 57121
+});
 
+udpPortSend.on("ready", function () {
+    console.log("Listening for OSC over UDP.");
+    //udpPortSend.send({address:"/height", args: [0, 255, 0] }, "127.0.0.1", 57122);
+});
+
+var control;
+var prevMsgString;
+io.on('connection', function (socket) {
+    console.log("NEW SOCKET")
+
+    udpPortSend.on("message", function (oscMessage) {
+        var msgString = JSON.stringify(oscMessage);
+        if (msgString != prevMsgString) {
+            var allPins=[];
+            for(var i=0; i<oscMessage.args.length-1; i+=2 ) {
+                var touchPin={};
+                touchPin.index = oscMessage.args[i];
+                touchPin.indent = oscMessage.args[i+1];
+                allPins.push(touchPin);
+            }
+            console.log(allPins);
+            socket.emit("touch", allPins);
+            prevMsgString = msgString;
+        }
+    });
+
+    udpPortSend.on("error", function (err) {
+        console.log(err);
+    });
+
+    udpPortSend.open();
+
+    /**
+    * Handle Socket.io events
+    */
+    //Storing control obj here [hack]
 
 	//Send update Message
-	socket.on('update', function (data) {
-		io.emit('apply',data);
+	socket.on('P', function (data) {
+		udpPortSend.send({address:"/height", args: data }, "127.0.0.1", 57122);
         //console.log('U: %s', JSON.stringify(data));
 	});
-
-  //Move Player camera
-  socket.on('move', function (data) {
-      io.emit('movePlayer',data);
-      //console.log('MOV: %s', JSON.stringify(data));
-  });
-
-  //Rotate Player camera
-  socket.on('rotate', function (data) {
-      io.emit('rotatePlayer',data);
-      //console.log('ROT: %s', JSON.stringify(data));
-  });
-
-  //Store control config to be sent when remote connects
-  socket.on('controlGUI', function(data){
-      control = data;
-      console.log("Control fncts " + JSON.stringify(control));
-  });
-
-  //Send control config to remote
-  socket.on('config', function(data){
-    io.emit('init', control);
-  });
 });
 
 
