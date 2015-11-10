@@ -1,6 +1,6 @@
-## F L A T L A N D
+## FORMATION
 
-A boilerplate for VR experiments
+(from Flatland!)
 
 ###Install && Start
 
