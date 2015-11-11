@@ -67,9 +67,10 @@ return function () {
     </script>
     <script src="/socket.io/socket.io.js" type="text/javascript"></script>
     <script src="js/ace/ace.js" type="text/javascript"></script>
-    <script src="js/3d/three.min.js" type="text/javascript"></script>
-    <script src="js/3d/ShapeDisplay.js" type="text/javascript"></script>
-    <script src="js/3d/Box.js" type="text/javascript"></script>
+    <script src="js/3js/three.min.js" type="text/javascript"></script>
+    <script src="js/xform/ShapeDisplay.js" type="text/javascript"></script>
+    <script src="js/xform/TouchManager.js" type="text/javascript"></script>
+    <script src="js/xform/Box.js" type="text/javascript"></script>
     <script src="js/utils/dat.gui.min.js" type="text/javascript"></script>
 
     <script type="text/javascript">
@@ -109,11 +110,13 @@ return function () {
     animate();
 
     socket.on("connect", function(){
-
+        console.log("CONNECTION");
     });
 
     socket.on("touch", function(data){
-        console.log(data);
+        //console.log(data);
+        touchManager.logTouch(data);
+        touchManager.touchQueue.push(data);
     });
 
     function init() {

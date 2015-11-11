@@ -93,42 +93,74 @@ udpPortSend.on("ready", function () {
 
 var control;
 var prevMsgString;
-io.on('connection', function (socket) {
-    console.log("NEW SOCKET")
+var sockets=[];
+var socketHeights;
 
-    udpPortSend.on("message", function (oscMessage) {
-        var msgString = JSON.stringify(oscMessage);
-        if (msgString != prevMsgString) {
-            var allPins=[];
-            for(var i=0; i<oscMessage.args.length-1; i+=2 ) {
-                var touchPin={};
-                touchPin.index = oscMessage.args[i];
-                touchPin.indent = oscMessage.args[i+1];
-                allPins.push(touchPin);
-            }
-            console.log(allPins);
-            socket.emit("touch", allPins);
-            prevMsgString = msgString;
+var broken = {
+    initialized : false,
+    pins : [72, 73, 74, 75, 76, 77],
+    initBrokenPins : function(msg) {
+        for (var i = 0; i < msg.args.length-1; i +=2) {
+            this.pins.push(msg.args[i]);
         }
-    });
+        console.log("broken pins: " + this.pins.toString());
+        this.initialized = true;
+    }
+}
 
-    udpPortSend.on("error", function (err) {
-        console.log(err);
-    });
-
-    udpPortSend.open();
-
-    /**
-    * Handle Socket.io events
-    */
-    //Storing control obj here [hack]
-
-	//Send update Message
-	socket.on('P', function (data) {
-		udpPortSend.send({address:"/height", args: data }, "127.0.0.1", 57122);
-        //console.log('U: %s', JSON.stringify(data));
-	});
+udpPortSend.on("message", function (oscMessage) {
+    if (!broken.initialized) {
+        broken.initBrokenPins(oscMessage);
+    }
+    var msgString = JSON.stringify(oscMessage);
+    if (msgString != prevMsgString) {
+        var oscPinsMinusBroken=[];
+        for(var i=0; i<oscMessage.args.length-1; i+=2 ) {
+            var touchPin={};
+            touchPin.index = oscMessage.args[i];
+            touchPin.height = oscMessage.args[i+1];
+            if (broken.pins.indexOf(touchPin.index) < 0) {
+                oscPinsMinusBroken.push(touchPin);
+            }
+        }
+        if (oscPinsMinusBroken.length > 0) {
+            console.log(oscPinsMinusBroken);
+            prevMsgString = msgString;
+            for(var i=0; i<sockets.length; i++){
+                 sockets[i].emit("touch", oscPinsMinusBroken);
+            }
+        }
+    }
 });
+
+udpPortSend.on("error", function (err) {
+    console.log(err);
+});
+
+udpPortSend.open();
+
+io.on('connection', function (socket) {
+    sockets.push(socket);
+    startSocketListener();
+});
+
+
+/**
+* Handle Socket.io events
+*/
+//Storing control obj here [hack]
+
+//Send update Message
+function startSocketListener(){
+    for(var i=0; i<sockets.length; i++){
+        sockets[i].on('P', function (data) {
+            socketHeights=data;
+        	udpPortSend.send({address:"/height", args: data }, "127.0.0.1", 57122);
+            //console.log('U: %s', JSON.stringify(data));
+            });
+    }
+}
+
 
 
 /**
