@@ -76,3 +76,86 @@ Box.prototype.collides = function(otherBox, yExtra) {
   ox2 = ~~(otherBox.x + otherBox.x_size);
   return (((ox1 <= tx1 && tx1 <= ox2) || (ox1 <= tx2 && tx2 <= ox2)) && ((oy1 <= (ty1 + yExtra) && (ty1 + yExtra) <= oy2) || (oy1 <= (ty2 + yExtra) && (ty2 + yExtra) <= oy2)));
 }
+
+function new2DArray(xSize, ySize){
+         // Create and init 2D array
+
+         var arr=[];
+         for (var i = 0; i < xSize ; i++) {
+             arr[i]=[];
+         }
+         for (var x = 0; x < xSize; x++) {
+             for (var y = 0; y < ySize; y++){
+                 arr[x][y] = 0;
+             }
+         }
+         return arr;
+    }
+
+
+function ObjectOnShapeDisplay(xSize, ySize, arrayOfObject) {
+    this.xSize = xSize;
+    this.ySize = ySize;
+    this.h = new2DArray(xSize,ySize);
+
+    for (var x = 0; x < this.xSize; x++ ){
+        for( var y = 0; y < this.ySize; y++ ){
+            this.h[x][y] = arrayOfObject[x][y];
+        }
+    }
+}
+
+ObjectOnShapeDisplay.prototype.addToShapeDisplay = function() {
+    for (var x = 0; x < this.xSize; x++ ) {
+        for( var y = 0; y < this.ySize; y++ ) {
+            xForm.setPinHeight(x,y,this.h[x][y]);
+        }
+    }
+}
+
+
+ObjectOnShapeDisplay.prototype.addToShapeDisplay = function(x0,y0) {
+    for (var x = 0; x < this.xSize; x++ ) {
+        for( var y = 0; y < this.ySize; y++ ) {
+            xForm.setPinHeight(x0+x,y0+y,this.h[x][y]);
+        }
+    }
+}
+
+function createRectangle (width, height) {
+    var h = new2DArray(width,height);
+    for ( var j = 0; j < width; j++ ) {
+        for ( var k = 0; k < height ; k++) {
+            h[j][k] = 1;
+        }
+    }
+    return new ObjectOnShapeDisplay(width, height, h);
+}
+
+function createLineCircle (r) {
+    var h = new2DArray(2*r+1,2*r+1);
+    var x0 = r+1;
+    var y0 = r+1;
+    for ( var x = 0; x < r; x++ ) {
+        var y = Math.floor(Math.sqrt(Math.pow(r,2)-Math.pow(x,2)));
+        h[x0+x][y0+y] = 1;
+        h[x0+x][y0-y] = 1;
+        h[x0-x][y0+y] = 1;
+        h[x0-x][y0-y] = 1;
+    }
+    return new ObjectOnShapeDisplay(2*r+1, 2*r+1, h);
+}
+function createCircle (r) {
+    var h = new2DArray(2*r+1,2*r+1);
+    var x0 = r+1;
+    var y0 = r+1;
+    for ( var x = 0; x < r; x++ ) {
+        var yMax = Math.floor(Math.sqrt(Math.pow(r,2)-Math.pow(x,2)));
+        var yMin = -yMax;
+        for ( var y = yMin; y < yMax; y++ ) {
+            h[x0+x][y0+y] = 1;
+            h[x0-x][y0+y] = 1;
+        }
+    }
+    return new ObjectOnShapeDisplay(2*r+1, 2*r+1, h);
+}

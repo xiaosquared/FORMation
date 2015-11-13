@@ -98,7 +98,7 @@ var socketHeights;
 
 var broken = {
     initialized : false,
-    pins : [72, 73, 74, 75, 76, 77],
+    pins : [72, 73, 74, 75, 76, 77, 575, 97],
     initBrokenPins : function(msg) {
         for (var i = 0; i < msg.args.length-1; i +=2) {
             this.pins.push(msg.args[i]);
