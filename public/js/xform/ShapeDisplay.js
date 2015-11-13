@@ -30,7 +30,7 @@ function ShapeDisplay(x_size, y_size, height, scene) {
     this.prevPhysicalPinHeights = new Array(x_size * y_size);
 
     for (var i = 0; i < x_size * y_size; i++) {
-        var pin = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.whiteMaterial);
+        var pin = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), materials.whiteMaterial.clone());
         pin.position.set(i% x_size * (this.pinSize + this.inBetween) + this.pinSize/2,
                         0, Math.floor(i/x_size) * (this.pinSize + this.inBetween) + this.pinSize/2);
         pin.scale.set(1, this.pinLength, 1);
@@ -168,6 +168,31 @@ ShapeDisplay.prototype.clearDisplayFromPhysical = function(h) {
 
 ShapeDisplay.prototype.makeBox = function(x, y, x_size, y_size, height) {
   return new Box(x, y, x_size, y_size, height, this);
+}
+
+//touched pins
+ShapeDisplay.prototype.getPinTouched = function(x, y) {
+    var index = this.getIndex(x, y);
+    return this.pins[index].touched;
+}
+ShapeDisplay.prototype.setPinTouched = function(x, y, touched) {
+    touched = (touched === undefined) ? true : touched;
+    var index = this.getIndex(x, y);
+    this.pins[index].touched = touched;
+}
+ShapeDisplay.prototype.setPinTouchedByIndex = function(index, touched) {
+    touched = (touched === undefined) ? true : touched;
+    this.pins[index].touched = touched;
+}
+ShapeDisplay.prototype.clearDisplayTouches = function() {
+    for (var i = 0; i < this.x_size; i++) {
+        for (var j = 0; j < this.y_size; j++) {
+            this.setPinTouched(i, j, false);
+            //set color back to white
+            var index = this.getIndex(i,j);
+            this.pins[index].material.color.setHex(0xffffff);
+        }
+    }
 }
 
 function Transform(height, scene) {

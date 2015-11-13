@@ -89,8 +89,7 @@ return function () {
     var mapImageContext;
     var xForm;
 
-    var running = false;
-    var pause = false;
+    var pause = true;
 
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
@@ -114,7 +113,8 @@ return function () {
     });
 
     socket.on("touch", function(data){
-        //console.log(data);
+        console.log(data[0].index);
+        xForm.setPinTouchedByIndex(data[0].index);
         touchManager.logTouch(data);
         touchManager.touchQueue.push(data);
     });
@@ -229,7 +229,7 @@ return function () {
 
       camera.updateProjectionMatrix();
 
-      if (running && controlVars.sendToPhysical) {
+      if (!pause && controlVars.sendToPhysical) {
           msg = xForm.getHeightsMsgForPhysical();
           if (msg.length > 0) {
             socket.emit('P', msg);
@@ -238,6 +238,28 @@ return function () {
       }
     }
 
+    //virtual touch handling
+    //TODO integrate with touchManager
+    document.addEventListener('mousedown', onDocumentMouseDown, false);
+    function onDocumentMouseDown(e){
+        e.preventDefault();
+        var mouseVector = new THREE.Vector3();
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouseVector.clone(), camera);
+        var intersects = raycaster.intersectObjects(xForm.pins);
+        console.log(intersects)
+        //change first elements color
+        var firstIntersect = intersects[0];
+        //gets specific pin
+        var firstObj = firstIntersect.object;
+        firstObj.material.color.setHex(0xff0000);
+        firstObj.touched = true;
+    }
+
+
+
     function animate(t) {
         setTimeout(function() {
             requestAnimationFrame(animate);
@@ -245,10 +267,11 @@ return function () {
             if (!pause) {
                 try {
                     this.code();
+                    xForm.clearDisplayTouches();
                 }
                 catch (err) {
                     console.log(err.toString());
-                    running = false;
+                    pause = true;
                 }
             }
             update(clock.getDelta());
@@ -280,16 +303,9 @@ return function () {
                 case 68:
                     this.code = function() {};
                     xForm.clearDisplay();
-                    running = false;
+                    pause = true;
                 case 32:
-                    if (pause) {
-                      running = true;
-                      pause = false;
-                    }
-                    else {
-                      pause = true;
-                      running = false;
-                    }
+                    pause = !pause;
                 case 37:
                     windowX += 1;
                 break;
@@ -319,12 +335,11 @@ return function () {
 
     this.code = function() {};
     this.changeCode = function() {
-      xForm.clearDisplay();
+      xForm.clearDisplay(0.5);
       var _executedCode;
       try {
         var userCode = new Function('"use strict";\n' + editor.getValue());
         executedCode = userCode();
-        running = true;
         pause = false;
       }
       catch (err) {
