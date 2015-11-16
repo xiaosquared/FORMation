@@ -114,7 +114,7 @@ return function () {
 
     socket.on("touch", function(data){
         console.log(data[0].index);
-        xForm.setPinTouchedByIndex(data[0].index);
+        xForm.addTouchedPinByIndex(data[0].index);
         touchManager.logTouch(data);
         touchManager.touchQueue.push(data);
     });
@@ -254,11 +254,8 @@ return function () {
         var firstIntersect = intersects[0];
         //gets specific pin
         var firstObj = firstIntersect.object;
-        firstObj.material.color.setHex(0xff0000);
-        firstObj.touched = true;
+        xForm.addTouchedPinByIndex(firstObj.pinIndex);
     }
-
-
 
     function animate(t) {
         setTimeout(function() {

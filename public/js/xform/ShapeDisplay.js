@@ -23,6 +23,8 @@ function ShapeDisplay(x_size, y_size, height, scene) {
     this.totalWidthDown = (this.pinSize + this.inBetween) * this.y_size;
     this.height = height;
     this.pinLength =7;
+    //keep track of touched pins
+    this.touchedPins = {};
 
     this.container = new THREE.Mesh();
     this.pins = new Array(x_size * y_size);
@@ -34,6 +36,7 @@ function ShapeDisplay(x_size, y_size, height, scene) {
         pin.position.set(i% x_size * (this.pinSize + this.inBetween) + this.pinSize/2,
                         0, Math.floor(i/x_size) * (this.pinSize + this.inBetween) + this.pinSize/2);
         pin.scale.set(1, this.pinLength, 1);
+        pin.pinIndex = i;
         this.container.add(pin);
         this.pins[i] = pin;
         this.physicalPinHeights[i] = 0;
@@ -70,6 +73,9 @@ ShapeDisplay.prototype.addToScene = function(scene) {
 }
 ShapeDisplay.prototype.getIndex = function(x, y) {
   return  y * this.x_size + x;
+}
+ShapeDisplay.prototype.getXYFromIndex = function(index) {
+    return [~~(index % this.x_size), ~~(index / this.x_size)];
 }
 ShapeDisplay.prototype.getPosition = function() {
     return this.container.position;
@@ -172,27 +178,21 @@ ShapeDisplay.prototype.makeBox = function(x, y, x_size, y_size, height) {
 
 //touched pins
 ShapeDisplay.prototype.getPinTouched = function(x, y) {
-    var index = this.getIndex(x, y);
-    return this.pins[index].touched;
+    var index = this.getIndex(x,y);
+    return this.touchedPins[index];
 }
-ShapeDisplay.prototype.setPinTouched = function(x, y, touched) {
-    touched = (touched === undefined) ? true : touched;
-    var index = this.getIndex(x, y);
-    this.pins[index].touched = touched;
+//return first touched pin
+ShapeDisplay.prototype.getTouchedPin = function() {
+    if (Object.keys(this.touchedPins).length !== 0) {
+        return this.getXYFromIndex(Object.keys(this.touchedPins)[0]);
+    }
+    else return null;
 }
-ShapeDisplay.prototype.setPinTouchedByIndex = function(index, touched) {
-    touched = (touched === undefined) ? true : touched;
-    this.pins[index].touched = touched;
+ShapeDisplay.prototype.addTouchedPinByIndex = function(index) {
+    this.touchedPins[index] = true; 
 }
 ShapeDisplay.prototype.clearDisplayTouches = function() {
-    for (var i = 0; i < this.x_size; i++) {
-        for (var j = 0; j < this.y_size; j++) {
-            this.setPinTouched(i, j, false);
-            //set color back to white
-            var index = this.getIndex(i,j);
-            this.pins[index].material.color.setHex(0xffffff);
-        }
-    }
+    this.touchedPins = {};
 }
 
 function Transform(height, scene) {

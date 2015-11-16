@@ -38,7 +38,10 @@ return function () {
 };
 
 
-//touch handling
+/***************************
+****** TOUCH HANDLING ******
+****************************/
+//global variables are defined here
 var i = 0;
 var centerX = xForm.x_size / 2;
 var centerY = xForm.y_size / 2;
@@ -48,21 +51,17 @@ return function() {
     i += 0.02;
     var phase = 2 * Math.PI * i;
 
-    //if a pin is touched, change the center of wave
-    for (var x = 0; x < xForm.x_size; x++) {
-        for (var y = 0; y < xForm.y_size; y++) {
-            if (xForm.getPinTouched(x, y)) {
-                centerX = x;
-                centerY = y;
-            }
-        }
+    var coords = xForm.getTouchedPin();
+    if (coords) {
+      centerX = coords[0];
+      centerY = coords[1];   
     }
 
     for (var x = 0; x < xForm.x_size; x++) {
         for (var y = 0; y < xForm.y_size; y++) {
           var d = Math.sqrt((centerX-x)*(centerX-x) + (centerY-y)*(centerY-y));
           var height = Math.sin(d - phase) / d;
-          xForm.setPinHeight(x, y, height);
+          xForm.setPinHeight(x, y, height + 0.4);
         }
     }
 }
