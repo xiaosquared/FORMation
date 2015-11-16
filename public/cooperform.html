@@ -253,8 +253,10 @@ return function () {
         //change first elements color
         var firstIntersect = intersects[0];
         //gets specific pin
-        var firstObj = firstIntersect.object;
-        xForm.addTouchedPinByIndex(firstObj.pinIndex);
+        if (firstIntersect) {
+          var firstObj = firstIntersect.object;
+          xForm.addTouchedPinByIndex(firstObj.pinIndex);
+        }
     }
 
     function animate(t) {
