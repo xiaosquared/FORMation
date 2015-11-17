@@ -211,13 +211,15 @@ Transform.prototype.setPinHeight = function(x, y, h) {
 Transform.prototype.setPinHeightFromPhysical = function(x, y, h) {
     this.setPinHeight(x, y, h/255);
 }
-Transform.prototype.getHeightsMsgForPhysical = function() {
+Transform.prototype.getHeightsMsgForPhysical = function(topHalf) {
     var msg = [];
-    for (var i = 0; i < this.size; i++) {
+    var start = topHalf ? 0 : 576;
+    var end = topHalf ? 576 : 1152;
+    for (var i = start; i < end; i++) {
         var x = i % this.island_width;
         var y = ~~(i/this.x_size);
         var whichDisplay = ~~((i%this.x_size)/this.island_width);
-        msg.push(this.shapeDisplays[whichDisplay].getPinHeightForPhysical(x, y));
+        msg.push(~~(this.shapeDisplays[whichDisplay].getPinHeightForPhysical(x, y)));
     }
     return msg;
     // return this.shapeDisplays.reduce(function(prev, current, i) {
