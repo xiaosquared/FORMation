@@ -102,27 +102,12 @@ ShapeDisplay.prototype.getPinHeightForPhysical = function(x, y) {
         return this.pins[index].position.y * 255 / this.pinLength;
     return null;
 }
-ShapeDisplay.prototype.getHeightsMsgForPhysical = function(offset_x) {
+ShapeDisplay.prototype.getHeightsMsgForPhysical = function() {
     var msg = [];
     for (var i = 0; i < this.pins.length; i++) {
         msg.push(this.physicalPinHeights[i]);
     }
     return msg;
-    // offset_x = offset_x ? offset_x : 0;
-    // var msg = "";
-    // for (var x = 0; x < this.x_size; x++) {
-    //     for (var y = 0; y < this.y_size; y++) {
-    //         var index = this.getIndex(x, y);
-    //         var h = this.physicalPinHeights[index];
-    //         var prev_h = this.prevPhysicalPinHeights[index];
-    //         if (h != prev_h) {
-    //             xval = x + offset_x;
-    //             msg += xval + "," + y + "," + h + "-";
-    //             this.prevPhysicalPinHeights[index] = h;
-    //         }
-    //     }
-    // }
-    // return msg.substring(0, msg.length -1);
 }
 ShapeDisplay.prototype.setPinHeight = function(x, y, h) {
     if (h || (h == 0)) {
@@ -189,7 +174,7 @@ ShapeDisplay.prototype.getTouchedPin = function() {
     else return null;
 }
 ShapeDisplay.prototype.addTouchedPinByIndex = function(index) {
-    this.touchedPins[index] = true; 
+    this.touchedPins[index] = true;
 }
 ShapeDisplay.prototype.clearDisplayTouches = function() {
     this.touchedPins = {};
@@ -200,8 +185,10 @@ function Transform(height, scene) {
     this.middle = new ShapeDisplay(16, 24, height);
     this.right = new ShapeDisplay(16, 24, height);
     this.shapeDisplays = [this.left, this.middle, this.right];
+    this.island_width = 16;
     this.x_size = 16 * 3;
     this.y_size = 24;
+    this.size = this.x_size * this.y_size;
 
     var subWidth = this.left.getTotalWidthAcross();
     this.left.setPositionZ(-13.25 - subWidth/2);
@@ -225,15 +212,23 @@ Transform.prototype.setPinHeightFromPhysical = function(x, y, h) {
     this.setPinHeight(x, y, h/255);
 }
 Transform.prototype.getHeightsMsgForPhysical = function() {
-    return this.shapeDisplays.reduce(function(prev, current, i) {
-        var currentMsg = current.getHeightsMsgForPhysical(i * 16);
-
-        if (currentMsg.length == 0)
-            return prev;
-        if (prev.length == 0)
-            return currentMsg;
-        return prev + "-" + currentMsg;
-    }, "");
+    var msg = [];
+    for (var i = 0; i < this.size; i++) {
+        var x = i % this.island_width;
+        var y = ~~(i/this.x_size);
+        var whichDisplay = ~~((i%this.x_size)/this.island_width);
+        msg.push(this.shapeDisplays[whichDisplay].getPinHeightForPhysical(x, y));
+    }
+    return msg;
+    // return this.shapeDisplays.reduce(function(prev, current, i) {
+    //     var currentMsg = current.getHeightsMsgForPhysical(i * 16);
+    //
+    //     if (currentMsg.length == 0)
+    //         return prev;
+    //     if (prev.length == 0)
+    //         return currentMsg;
+    //     return prev + "-" + currentMsg;
+    // }, "");
 }
 Transform.prototype.clearDisplay = function(h) {
     this.shapeDisplays.map(function(display) {
