@@ -200,7 +200,6 @@ function Transform(height, scene) {
     this.container.add(this.right.getGeometry());
     scene.add(this.container);
 }
-
 Transform.prototype.setPinHeight = function(x, y, h) {
     if (x >= this.x_size || y >= this.y_size) {
         console.log("Setting out of bounds: x: " + x + ", y: " + y);
@@ -218,8 +217,8 @@ Transform.prototype.getHeightsMsgForPhysical = function(topHalf) {
     for (var i = start; i < end; i++) {
         var x = i % this.island_width;
         var y = ~~(i/this.x_size);
-        var whichDisplay = ~~((i%this.x_size)/this.island_width);
-        msg.push(~~(this.shapeDisplays[whichDisplay].getPinHeightForPhysical(x, y)));
+        var selectedDisplay = this.shapeDisplays[~~((i%this.x_size)/this.island_width)];
+        msg.push(~~(selectedDisplay.physicalPinHeights[selectedDisplay.getIndex(x, y)]));
     }
     return msg;
     // return this.shapeDisplays.reduce(function(prev, current, i) {

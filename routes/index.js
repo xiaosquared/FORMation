@@ -23,4 +23,10 @@ router.get('/t', function(req, res, next) {
   });
 });
 
+router.get('/p', function(req, res, next) {
+  res.sendFile('polyform.html',options, function(err){
+    if (err) res.status(err.status).end();
+  });
+});
+
 module.exports = router;
