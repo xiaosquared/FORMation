@@ -22,6 +22,10 @@ function ShapeDisplay(x_size, y_size, height, scene) {
     this.totalWidthAcross = (this.pinSize + this.inBetween) * this.x_size;
     this.totalWidthDown = (this.pinSize + this.inBetween) * this.y_size;
     this.height = height;
+
+    //height that clearDisplay sets to
+    this.defaultPinHeight = 0.5;
+
     this.pinLength =7;
     //keep track of touched pins
     this.touchedPins = {};
@@ -145,7 +149,7 @@ ShapeDisplay.prototype.setPinMaterial = function(x, y, material) {
 
 ShapeDisplay.prototype.clearDisplay = function(h) {
     if (!h) {
-        h = 0;
+        h = this.defaultPinHeight;
     }
     for (var i = 0; i < this.x_size; i++) {
       for (var j = 0; j < this.y_size; j++) {

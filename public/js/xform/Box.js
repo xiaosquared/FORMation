@@ -3,8 +3,8 @@ function Box(x, y, x_size, y_size, height, shapeDisplay) {
     this.y = y;
     this.x_size = x_size;
     this.y_size = y_size;
-    this.height = height;
     this.shapeDisplay = shapeDisplay;
+    this.height = height + shapeDisplay.defaultPinHeight;
     this.visible = true;
     this.hollow = false;
 }
@@ -17,32 +17,44 @@ Box.prototype.makeHollow = function(hollow) {
 }
 
 Box.prototype.draw = function() {
-    for (var i = 0; i < this.x_size; i++) {
-      for (var j = 0; j < this.y_size; j++) {
+    //keep box from overflowing shapeDisplay bounds
+    var xSum = (this.x + this.x_size);
+    var xMax = xSum >= this.shapeDisplay.x_size ? this.shapeDisplay.x_size : xSum;
+    var ySum = (this.y + this.y_size);
+    var yMax = ySum >= this.shapeDisplay.y_size ? this.shapeDisplay.y_size : ySum;
+    console.log("xMax "+ xMax);
+    console.log("yMax "+ yMax);
+    for (var i = this.x; i < xMax; i++) {
+      for (var j = this.y; j < yMax; j++) {
         if (!this.hollow) {
-            this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height);
+            this.shapeDisplay.setPinHeight(~~(i), ~~(j), this.height);
         }
         else {
-            var distFromBorder = Math.min(i,(this.x_size - 1 - i), j, (this.y_size - 1 - j));
-            this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), this.height - (distFromBorder + 1) * 0.1);
+            //TODO double check new logic
+            var distFromBorder = Math.min(i - this.x,(xMax - i), j - this.y, (yMax - j));
+            this.shapeDisplay.setPinHeight(~~(i), ~~(j), this.height - (distFromBorder + 1) * 0.1);
         }
       }
     }
 }
 
 Box.prototype.erase = function(h) {
-    h = h ? h : 0;
-	for (var i = 0; i < this.x_size; i++) {
-      for (var j = 0; j < this.y_size; j++) {
-      	this.shapeDisplay.setPinHeight(~~(this.x + i), ~~(this.y + j), 0);
+    h = h ? h : this.shapeDisplay.defaultPinHeight;
+    var xSum = (this.x + this.x_size);
+    var xMax = xSum >= this.shapeDisplay.x_size ? this.shapeDisplay.x_size : xSum;
+    var ySum = (this.y + this.y_size);
+    var yMax = ySum >= this.shapeDisplay.y_size ? this.shapeDisplay.y_size : ySum;
+    for (var i = this.x; i < xMax; i++) {
+      for (var j = this.y; j < yMax; j++) {
+      	this.shapeDisplay.setPinHeight(~~(i), ~~(j), h);
       }
     }
 }
 
 Box.prototype.destroy = function(h) {
-    h = h ? h : 0;
+    h = h ? h : this.shapeDisplay.defaultPinHeight;
     if (this.visible) {
-        this.erase();
+        this.erase(h);
         this.visible = false;
     }
 }

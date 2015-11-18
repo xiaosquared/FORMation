@@ -334,7 +334,7 @@ return function () {
 
     this.code = function() {};
     this.changeCode = function() {
-      xForm.clearDisplay(0.5);
+      xForm.clearDisplay();
       var _executedCode;
       try {
         var userCode = new Function('"use strict";\n' + editor.getValue());
