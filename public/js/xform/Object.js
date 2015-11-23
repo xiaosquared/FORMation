@@ -257,27 +257,80 @@ function createCircle (r) {
 
 XX: Some tests for robustness
 
-1. --------------------------
-var circle = createCircle(5);
+1. Adding 2 shapes at once
+--------------------------
+    var circle = createCircle(5);
     circle.setLocation(15,15);
-var rec = createRectangle(7,5);
+    var rec = createRectangle(7,5);
     rec.setLocation(10,15);
 
-circle.addToShapeDisplay();
-rec.addToShapeDisplay();
+    circle.addToShapeDisplay();
+    rec.addToShapeDisplay();
 
 This one only shows rec, not circle
 Ideal behavior: show both if they don't overlap.
 If they do overlap, automatically do boolean add operation
 ----------------------------
 
-2.--------------------------
-var rec = createRectangle(2,2);
+2. When a shape extends beyond the display
+--------------------------
+    var rec = createRectangle(2,2);
     rec.setLocation(0,15);
 
-rec.addToShapeDisplay();
+    rec.addToShapeDisplay();
 
 When the shape partly extends beyond the shape display, it doesn't show up at all
 Ideal behavior: the part that stays on the shape display should show up
 ----------------------------
+
+3. consistency between shape by itself vs when added to another shape
+--------------------------
+    var circle = createCircle(5);
+    circle.setLocation(15,15);
+    var rec = createRectangle(7,5);
+    rec.setLocation(10,15);
+
+    circle.add(rec);
+
+    //circle.addToShapeDisplay();
+    rec.addToShapeDisplay();
+
+To test, alternately comment out circle.addToshapeDisplay()
+and rec.addToShapeDisplay(), you'll see that even though it should be the
+same rectangle, it's drawn in different places when it's by itself vs when
+it's attached to the circle.
+You can see the same behavior in your original test code if you try doing
+rec.addToShapeDisplay().
+
+-----------------------------
+
+4. persistence of shape
+---------------------------
+    var circle = createCircle(8);
+    circle.setLocation(15,15);
+
+    var rec = createRectangle(7,5);
+    rec.setLocation(15,15);
+
+    rec.add(circle);
+    circle.addToShapeDisplay();
+
+It looks like adding circle to rec destroys the circle.
+Should this be the ideal behavior, or should it still draw the circle?
+----------------------------
+
+5. Adding a bigger shape to a smaller shape
+-----------------------------
+    var circle = createCircle(8);
+    circle.setLocation(15,15);
+
+    var rec = createRectangle(7,5);
+    rec.setLocation(15,15);
+
+    rec.add(circle);
+    rec.addToShapeDisplay();
+
+We don't see any shape rendered, but we should see a big circle
+------------------------------
+
 */
