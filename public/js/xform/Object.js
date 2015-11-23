@@ -58,7 +58,7 @@ ObjectOnShapeDisplay.prototype.updatePlaneFromObject = function() {
 
 ObjectOnShapeDisplay.prototype.updateObjectFromPlane = function() {
     // Update object based on plane
-    
+
     this.h = new2DArray(planeSize,planeSize);
     this.xSize = planeSize;
     this.ySize = planeSize;
@@ -76,7 +76,7 @@ ObjectOnShapeDisplay.prototype.updateObjectFromPlane = function() {
 
 
 ObjectOnShapeDisplay.prototype.setLocation = function(x0,y0) {
-    // set the location of object -> the location is coordinate of ShapeDisplay where the center of object will be located 
+    // set the location of object -> the location is coordinate of ShapeDisplay where the center of object will be located
     this.location.x = x0;
     this.location.y = y0;
     this.updatePlaneFromObject();
@@ -108,13 +108,13 @@ ObjectOnShapeDisplay.prototype.subtract = function(obj) {
     this.updateObjectFromPlane();
 }
 
-ObjectOnShapeDisplay.prototype.clearWhiteArea = function() { 
+ObjectOnShapeDisplay.prototype.clearWhiteArea = function() {
 
-    // Clear white space around the object to make sure that the xSize and ySize of object is accurate 
+    // Clear white space around the object to make sure that the xSize and ySize of object is accurate
 
     var X = {st: -1, en: -1};
     var Y = {st: -1, en: -1};
-    
+
     for ( var x = 0; x < this.xSize; x++ ) {
         for ( var y = 0; y < this.ySize; y++ ) {
             if ( this.h[x][y]!=0 ) {
@@ -127,7 +127,7 @@ ObjectOnShapeDisplay.prototype.clearWhiteArea = function() {
         }
     }
 
-    
+
     for ( y = 0; y < this.ySize; y++ ) {
         for ( x = 0; x < this.xSize; x++ ) {
             if ( this.h[x][y]!=0 ) {
@@ -182,7 +182,7 @@ ObjectOnShapeDisplay.prototype.clearWhiteArea = function() {
 
 }
 
-ObjectOnShapeDisplay.prototype.findCenter = function() { 
+ObjectOnShapeDisplay.prototype.findCenter = function() {
 
     // Find center of mass of the object
     var xWeight = 0; // Weight by position of coordinate
@@ -209,7 +209,7 @@ function createRectangle (width, height) {
         for ( var k = 0; k < height ; k++) {
             h[j][k] = 1;
         }
-    }      
+    }
     return new ObjectOnShapeDisplay("Rectangle",width, height, h);
 }
 
@@ -221,10 +221,10 @@ function createLineCircle (r) {
     for ( var x = 0; x < r; x++ ) {
         var y = Math.floor(Math.sqrt(Math.pow(r,2)-Math.pow(x,2)));
         h[x0+x][y0+y] = 1;
-        h[x0+x][y0-y] = 1;  
+        h[x0+x][y0-y] = 1;
         h[x0-x][y0+y] = 1;
-        h[x0-x][y0-y] = 1; 
-    }  
+        h[x0-x][y0-y] = 1;
+    }
     return new ObjectOnShapeDisplay("LineCircle",2*r+1, 2*r+1, h);
 }
 
@@ -240,7 +240,7 @@ function createCircle (r) {
             h[x0+x][y0+y] = 1;
             h[x0-x][y0+y] = 1;
         }
-    }  
+    }
     return new ObjectOnShapeDisplay("Circle",2*r+1, 2*r+1, h);
 }
 
@@ -255,4 +255,29 @@ function createCircle (r) {
     circle.subtract(rec);
     circle.addToShapeDisplay();
 
+XX: Some tests for robustness
+
+1. --------------------------
+var circle = createCircle(5);
+    circle.setLocation(15,15);
+var rec = createRectangle(7,5);
+    rec.setLocation(10,15);
+
+circle.addToShapeDisplay();
+rec.addToShapeDisplay();
+
+This one only shows rec, not circle
+Ideal behavior: show both if they don't overlap.
+If they do overlap, automatically do boolean add operation
+----------------------------
+
+2.--------------------------
+var rec = createRectangle(2,2);
+    rec.setLocation(0,15);
+
+rec.addToShapeDisplay();
+
+When the shape partly extends beyond the shape display, it doesn't show up at all
+Ideal behavior: the part that stays on the shape display should show up
+----------------------------
 */
