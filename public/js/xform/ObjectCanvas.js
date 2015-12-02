@@ -227,13 +227,46 @@ function createFromArr (width, height) {
 }
 
 
+function addImg(filePath){
+
+    
+    var img = new Image();
+    img.src = filePath;
+    ctx.clearRect(0,0,500,500);
+
+    img.onload = function() {
+
+        ctx.drawImage(img, 0, 0);
+        img.style.display = 'none';
+    }
+
+
+    //window.setTimeout(draw,1000);
+}
+
+function initCanvas(){
+
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+    window.setTimeout(draw,1000);
+}
+
 function draw() {
 
-	var img = new Image();
+	/*
+    var img = new Image();
 	img.src = 'snowflex.jpg';
     canvas = document.getElementById('canvas');
-    //var canvas = document.getElementById('canvas');
+    var canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
+    */
+    console.log("draw called!");
+    addImg('a.jpg');
+    var img = new Image();
+    //img.src = 'snowflex.jpg';
+    img.src = canvas.toDataURL();
+
+    ctx.clearRect(0,0,500,500);
 
 	img.onload = function() {
 
@@ -244,7 +277,7 @@ function draw() {
 
 
   		var color = document.getElementById('color');
-		  var pixel = ctx.getImageData(0, 0, img.width, img.height);
+		var pixel = ctx.getImageData(0, 0, img.width, img.height);
   		var data = pixel.data;
 
   		//console.log(data);
@@ -277,11 +310,9 @@ function draw() {
 					for ( y = 0 ; y < h; y++ ) {
 						if ( rgb[i*w+x][j*h+y] == 1){
 							sumRGB++;
-							//console.log(i+x,j+y);
 						}
 					}
 				}
-				//console.log(i,j,sumRGB);
 				if ( sumRGB > 0.7*(w*h) )
 					pin[i][j] = 1;
   			
@@ -289,11 +320,15 @@ function draw() {
   		}
 
 	};
-
-
-
+    test();
 }
 
+
+function test(){
+    var a = createFromArr(24,24);
+    a.setLocation(12,12);
+    a.addToShapeDisplay();
+}
 
 /*
 var a = createFromArr(24,24);
