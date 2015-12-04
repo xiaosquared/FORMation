@@ -1,6 +1,6 @@
 var planeSize = 24;
 
-var pin=new2DArray(planeSize,planeSize);
+var pin = new2DArray(planeSize,planeSize);
 var canvas;
 var ctx;
 var rgb;
@@ -88,7 +88,7 @@ function addImg(filePath){
 
         ctx.drawImage(img, 0, 0);
         img.style.display = 'none';
-        draw();
+        drawCanvas();
         //window.setTimeout(draw,1000);
     }
 }
@@ -110,7 +110,7 @@ function initCanvas(){
     
 }
 
-function draw() {
+function drawCanvas() {
 
     var img = new Image();
     img.src = canvas.toDataURL();
@@ -126,8 +126,11 @@ function draw() {
 		var pixel = ctx.getImageData(0, 0, img.width, img.height);
   		dataRGBA = pixel.data;
 
-  		setBlackAndWhiteForEachPixel();
-        setPinFromCanvas();
+  		//setBlackAndWhiteForEachPixel();
+        //setPinFromCanvas();
+        setGrayForEachPixel();
+        setGreyPinFromCanvas();
+
         //window.setTimeout(updateShapeDisplay,1000);
 	};
 
@@ -156,6 +159,25 @@ function setBlackAndWhiteForEachPixel() {
 
 }
 
+function setGrayForEachPixel() {
+    
+    var img = new Image();
+    img.src = canvas.toDataURL();
+    var i;  var j;  var x;  var y;
+    
+    i = 0; // i is iterator of color RGB pointer
+
+    // Search Black and White from Each Pixel
+    for ( x = 0; x < img.width; x++) {
+        for ( y = 0; y < img.height; y++){
+            rgb[x][y] = 1-(dataRGBA[i]+dataRGBA[i+1]+dataRGBA[i+2])/765;
+            i += 4;
+        }
+    }
+
+}
+
+
 function setPinFromCanvas() {
     // Convert pixel of Canvas into new array size 24x24
 
@@ -179,7 +201,31 @@ function setPinFromCanvas() {
                 pin[i][j] = 0;
         }
     }
-    updateShapeDisplay()
+    updateShapeDisplay();
+}
+
+
+function setGreyPinFromCanvas() {
+    // Convert pixel of Canvas into new array size 24x24
+
+    var img = new Image();
+    img.src = canvas.toDataURL();
+
+    var w = Math.floor(img.width/pinSize);
+    var h = Math.floor(img.height/pinSize);
+
+    for ( var i = 0 ; i < pinSize; i++ ) {
+        for ( var j = 0 ; j < pinSize; j++ ) {
+            var sumRGB = 0;
+            for ( var x = 0 ; x < w; x++ ) {
+                for ( var y = 0 ; y < h; y++ ) {
+                    sumRGB+=rgb[i*w+x][j*h+y];
+                }
+            }
+            pin[i][j] = sumRGB/(w*h);
+        }
+    }
+    updateShapeDisplay();
 }
 
 
@@ -189,13 +235,15 @@ function updateShapeDisplay(){
     a.addToShapeDisplay();
 }
 
+
 /*
 
     Test Case
-
-    addImg('a.jpg');
+    ///////1/////
+    addImg('img/snowflex.jpg');
     return function () {
-        
+
     };
+
 
 */
