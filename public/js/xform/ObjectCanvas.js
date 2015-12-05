@@ -1,6 +1,7 @@
 var planeSize = 24;
 
 var pin = new2DArray(planeSize,planeSize);
+var pinCorrected = new2DArray(planeSize,planeSize);
 var canvas;
 var ctx;
 var rgb;
@@ -72,7 +73,8 @@ ObjectOnShapeDisplay.prototype.setLocation = function(x0,y0) {
 }
 
 function createFromArr (width, height) {
-    return new ObjectOnShapeDisplay("Picture",width, height, pin);
+    convertPinHeight();
+    return new ObjectOnShapeDisplay("Picture",width, height, pinCorrected);
 }
 
 
@@ -126,10 +128,10 @@ function drawCanvas() {
 		var pixel = ctx.getImageData(0, 0, img.width, img.height);
   		dataRGBA = pixel.data;
 
-  		//setBlackAndWhiteForEachPixel();
-        //setPinFromCanvas();
-        setGrayForEachPixel();
-        setGreyPinFromCanvas();
+  		setBlackAndWhiteForEachPixel();
+        setPinFromCanvas();
+        //setGrayForEachPixel();
+        //setGreyPinFromCanvas();
 
         //window.setTimeout(updateShapeDisplay,1000);
 	};
@@ -236,6 +238,47 @@ function updateShapeDisplay(){
 }
 
 
+function addLetter(letter) {
+
+    // Draw one letter on Canvas using text drawing function of canvas
+
+    ctx.fillStyle = "rgb(255,255,255)";
+    ctx.fillRect(0,0,500,500);
+    
+
+    ctx.fillStyle = "rgb(0,0,0)";
+    ctx.font = "bolder 280px Arial";
+    ctx.fillText(letter, 20, 250);
+    drawCanvas();
+    //window.setTimeout(drawCanvas,00);
+
+}
+
+function convertPinHeight() {
+
+    // Convert the array of pin to fix the problem of invert and rotated picture
+
+    for ( var i = 0 ; i < pinSize; i++ ) {
+        for ( var j = 0 ; j < pinSize; j++ ) {
+            pinCorrected[j][i] = pin[i][j];
+        }
+    }
+
+}
+
+function isTyping() {
+
+    // Realtime display what alphabet you type on your keyboard
+
+    window.addEventListener("keydown", checkKeyPressed, false);
+ 
+    function checkKeyPressed(e) {
+        //alert(e.keyCode);
+        if (parseInt(e.keyCode) >= 65 && parseInt(e.keyCode) <= 90 ) {
+            addLetter( String.fromCharCode(parseInt(e.keyCode)) );
+        }
+    }
+}
 /*
 
     Test Case
@@ -244,6 +287,11 @@ function updateShapeDisplay(){
     return function () {
 
     };
+    
+    //////2//////
+    isTyping();
+    return function () {
 
+    };
 
 */
