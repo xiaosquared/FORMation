@@ -128,10 +128,10 @@ function drawCanvas() {
 		var pixel = ctx.getImageData(0, 0, img.width, img.height);
   		dataRGBA = pixel.data;
 
-  		setBlackAndWhiteForEachPixel();
-        setPinFromCanvas();
-        //setGrayForEachPixel();
-        //setGreyPinFromCanvas();
+  		//setBlackAndWhiteForEachPixel();
+        //setPinFromCanvas();
+        setGrayForEachPixel();
+        setGreyPinFromCanvas();
 
         //window.setTimeout(updateShapeDisplay,1000);
 	};
